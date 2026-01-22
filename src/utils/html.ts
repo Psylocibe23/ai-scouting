@@ -9,12 +9,26 @@ function stripHtml(html: string): string {
     // Remove all tags
     let text = html.replace(/<[^>]*>/g, ' ');
     text = text
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'");
+      // basic entities
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&apos;/gi, "'")
+      // smart quotes
+      .replace(/&lsquo;/gi, "'")
+      .replace(/&rsquo;/gi, "'")
+      .replace(/&ldquo;/gi, '"')
+      .replace(/&rdquo;/gi, '"')
+      // punctuation
+      .replace(/&hellip;/gi, '...')
+      .replace(/&ndash;/gi, '-')
+      .replace(/&mdash;/gi, '-')
+      // currencies
+      .replace(/&euro;/gi, '€')
+      .replace(/&pound;/gi, '£')
 
     // Collapse multiple whitespace into single spaces and trim
     text = text.replace(/\s+/g, ' ').trim();
