@@ -1,0 +1,19 @@
+{
+  "name": "ai-scouting-paprika",
+  "version": "1.0.0",
+  "description": "prototipo che automatizza lo scouting di acceleratori e startup in Europa e generi una value proposition sintetica per le startup, usando Google Sheets + Apps Script.",
+  "main": "Codice.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+      "build": "tsc",
+      "push": "npm run build && clasp push",
+      "pull": "clasp pull"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/google-apps-script": "^2.0.8",
+    "typescript": "^5.9.3"
+  }
+}
