@@ -57,6 +57,14 @@ function extractPageMeta(html: string): {title?: string, description?: string} {
         }
     }
 
+    // Fallback: <meta property="og:title" ...>
+    if (!title) {
+        const ogTitleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']*)["'][^>]*>/i);
+        if (ogTitleMatch && ogTitleMatch[1]) {
+            title = stripHtml(ogTitleMatch[1])
+        }
+    }
+
     // Extract <meta name="description" content="...">
     const metaDescMatch = html.match(/<meta[^>]+name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i);
     if (metaDescMatch && metaDescMatch[1]) {
