@@ -216,7 +216,7 @@ function CallLlmJson(systemPrompt: string, userPrompt: string, actionName: strin
         ],
         temperature: 0,
         response_format: { type: 'json_object' },
-        max_tokes: 512,
+        max_tokens: 512,
     };
 
     const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
@@ -248,7 +248,7 @@ function CallLlmJson(systemPrompt: string, userPrompt: string, actionName: strin
         }
 
         const usage = data && data.usage ? data.usage : undefined;
-        AppLogger.info(actionName, 'LLM call succeeded', {statusCode: status, durationMs: end - start, ysage: usage,});
+        AppLogger.info(actionName, 'LLM call succeeded', {statusCode: status, durationMs: end - start, usage: usage,});
 
         if (!data.choices ||
             !data.choices[0] ||

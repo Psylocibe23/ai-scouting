@@ -1,4 +1,52 @@
 /**
+ * SerpAPI usage tracking and management *monthly max quota = 250 searches)
+ */
+const SERPAPI_MONTHLY_CALL_LIMIT = 240; // safety margin = 10
+const SERPAPI_USAGE_MONTH_KEY  = 'SERPAI_USAGE_MONTH';
+const SERPAPI_USAGE_COUNT_KEY  = 'SERPAPI_USAGE_COUNT';
+
+function getCurrentMonthKey(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const monthNumber = now.getMonth() + 1;
+    const month = (monthNumber < 10 ? '0' + monthNumber : String(monthNumber));
+    return `${year}-${month}`;
+}
+
+function getSerpApiUsage(): {monthkey: string, count: number} {
+    const props = PropertiesService.getScriptProperties();
+    const currentMonth = getCurrentMonthKey();
+    const storedMonth = (props.getProperty(SERPAPI_USAGE_MONTH_KEY) || '').trim();
+    const storedCountStr = (props.getProperty(SERPAPI_USAGE_COUNT_KEY) || '').trim();
+    let count = parseInt(storedCountStr || '0', 10);
+
+    if (!storedMonth || storedMonth !== currentMonth) {
+        // new month -> reset counter
+        props.setProperty(SERPAPI_USAGE_MONTH_KEY, currentMonth);
+        props.setProperty(SERPAPI_USAGE_COUNT_KEY, '0');
+        count = 0;
+        return {monthkey: currentMonth, count: count};
+    }
+
+    if (isNaN(count) || count < 0) {
+        count = 0;
+    }
+
+    return { monthkey: storedMonth, count};
+}
+
+function incrementSerpApiUsage(): number {
+    const props = PropertiesService.getScriptProperties();
+    const currentMonth = getCurrentMonthKey();
+    const usage = getSerpApiUsage();
+    const newCount = usage.count + 1;
+    props.setProperty(SERPAPI_USAGE_MONTH_KEY, currentMonth);
+    props.setProperty(SERPAPI_USAGE_COUNT_KEY, String(newCount));
+    return newCount;
+}
+
+
+/**
  * Small curated list of European accelerators used for the prototype.
  * In a real system, this could be replaced or complemented by a search API.
  */
@@ -144,3 +192,113 @@ function scoutAccelerators(batch_size: number = 10): ScoutAceleratorResult {
     
 }
 
+
+interface SerpApiResult {
+    title?: string;
+    link?: string;
+    snippet?: string;
+}
+
+interface SerpApiResponse {
+    organic_results?: SerpApiResult[];
+}
+
+/**
+ * Calls SerpAPI (Google search) to discover candidates accelerators in Europe.
+ * - respects a monthly usage cap (allowed from free-tier)
+ * - uses a default low number of results per call.
+ */
+function discoverAcceleratorsFromSerpApi(maxResults: number = 10): Accelerator[] {
+    const action = 'discoverAcceleratorsFromSerpApi';
+    const apiKey = getSerpApiKey();
+
+    if (!apiKey) {
+        AppLogger.warn(action, 'No SERPAPI_KEY configured, skipping SerpAPI discovery.');
+        return [];
+    }
+
+    // check usage before filing request
+    const usage = getSerpApiUsage();
+    if (usage.count > SERPAPI_MONTHLY_CALL_LIMIT) {
+        AppLogger.warn(action, `SerpAPI monthly limit reached or exceeded (${usage.count}/${SERPAPI_MONTHLY_CALL_LIMIT}). Skipping call.`);
+        return [];
+    }
+
+    const query = 'startup accelerator in europe';
+    const params: {[key: string]: string} = {
+        engine: 'google',
+        q: query,
+        api_key: apiKey,
+        num: String(maxResults), // how many results we get from this call
+    };
+
+    const qs = Object.keys(params).map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
+
+    const url = `https://serpapi.com/search.json?${qs}`;
+
+    try {
+        const response = UrlFetchApp.fetch(url, {muteHttpExceptions: true});
+        const status = response.getResponseCode();
+        const text = response.getContentText() || '';
+        const newCount = incrementSerpApiUsage();
+
+        if (newCount >= SERPAPI_MONTHLY_CALL_LIMIT - 5) {
+            AppLogger.warn(action, `SerpAPI usage nearing limit: ${newCount}/${SERPAPI_MONTHLY_CALL_LIMIT}`);
+        }
+
+        if (status < 200 || status >= 300) {
+            AppLogger.warn(action, `Non-2xx status from SerpAPI: ${status}`, {bodyPreview: text.slice(0, 200),});
+            return [];
+        }
+
+        let data: SerpApiResponse;
+
+        try {
+            data = JSON.parse(text) as SerpApiResponse;
+        } catch (parseErr) {
+            AppLogger.error(action, 'Failed to parse SerpAPI JSON response', parseErr);
+            return [];
+        }
+
+         const organic = data.organic_results || [];
+         const accelerators: Accelerator[] = [];
+
+         organic.forEach((r) => {
+            const link = (r.link || '').trim();
+            const title = (r.title || '').trim();
+            const snippet = (r.snippet || '').trim();
+            const websiteNorm = normalizeUrl(link);
+            if (!websiteNorm) {
+                return;
+            }
+
+            const lowerText = (title + ' ' + snippet).toLowerCase();
+
+            // Heuristic: keep only items that looks like accelerator programs
+            if (
+                !lowerText.includes('accelerator') &&
+                !lowerText.includes('acceleration program') &&
+                !lowerText.includes('startup program') &&
+                !lowerText.includes('startup accelerator')
+            ) {
+                return;
+            }
+
+            const inferredName = title || websiteNorm;
+            accelerators.push({
+                website: websiteNorm,
+                name: inferredName,
+                country: 'Europe',
+                city: undefined,
+                focus: snippet || undefined,
+            });
+         });
+
+         AppLogger.info(action, 'SerpAPI discovery completed', {query, found: accelerators.length, usageAfterCall: newCount});
+         
+         return accelerators;
+    } catch (e) {
+        AppLogger.error(action, 'Exception while calling SerpAPI', e);
+        return [];
+    }
+}
