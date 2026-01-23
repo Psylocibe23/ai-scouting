@@ -9,12 +9,26 @@ function stripHtml(html) {
     // Remove all tags
     var text = html.replace(/<[^>]*>/g, ' ');
     text = text
+        // basic entities
         .replace(/&nbsp;/gi, ' ')
         .replace(/&amp;/gi, '&')
         .replace(/&lt;/gi, '<')
         .replace(/&gt;/gi, '>')
         .replace(/&quot;/gi, '"')
-        .replace(/&#39;/gi, "'");
+        .replace(/&#39;/gi, "'")
+        .replace(/&apos;/gi, "'")
+        // smart quotes
+        .replace(/&lsquo;/gi, "'")
+        .replace(/&rsquo;/gi, "'")
+        .replace(/&ldquo;/gi, '"')
+        .replace(/&rdquo;/gi, '"')
+        // punctuation
+        .replace(/&hellip;/gi, '...')
+        .replace(/&ndash;/gi, '-')
+        .replace(/&mdash;/gi, '-')
+        // currencies
+        .replace(/&euro;/gi, '€')
+        .replace(/&pound;/gi, '£');
     // Collapse multiple whitespace into single spaces and trim
     text = text.replace(/\s+/g, ' ').trim();
     return text;
@@ -34,6 +48,13 @@ function extractPageMeta(html) {
         title = stripHtml(titleMatch[1]);
         if (title === '') {
             title = undefined;
+        }
+    }
+    // Fallback: <meta property="og:title" ...>
+    if (!title) {
+        var ogTitleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]*content=["']([^"']*)["'][^>]*>/i);
+        if (ogTitleMatch && ogTitleMatch[1]) {
+            title = stripHtml(ogTitleMatch[1]);
         }
     }
     // Extract <meta name="description" content="...">
@@ -56,4 +77,18 @@ function extractPageMeta(html) {
         result.description = description;
     }
     return result;
+}
+/**
+ * Extracts the first <h1>...</h1> heading from the HTML, if present.
+ */
+function extractMainHeading(html) {
+    if (!html) {
+        return undefined;
+    }
+    var h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+    if (h1Match && h1Match[1]) {
+        var h1Text = stripHtml(h1Match[1]);
+        return h1Text !== '' ? h1Text : undefined;
+    }
+    return undefined;
 }

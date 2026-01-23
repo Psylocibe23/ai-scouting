@@ -32,13 +32,33 @@ function getLlmConfig() {
     };
 }
 /**
+ * Use fetched metadata to create context proposition for LLM prompt
+ */
+function buildWebsiteContext(html) {
+    var meta = extractPageMeta(html);
+    var h1 = extractMainHeading(html);
+    var parts = [];
+    if (meta.title) {
+        parts.push(meta.title);
+    }
+    if (meta.description) {
+        parts.push(meta.description);
+    }
+    if (h1) {
+        parts.push(h1);
+    }
+    // Join and truncate to keep context compact
+    var joined = parts.join(' | ');
+    return joined.length > 500 ? joined.slice(0, 500) : joined;
+}
+/**
  * Builds a prompt to be passed to LLM to generate a value proposition for a startup.
  * The LLM is instructed to produce exactly one sentence of the format:
  *      "Startup <X> helps <target Y> do <what W> so that <benefit Z>."
  */
-function buildPrompt(startupName, webstie, context) {
+function buildPrompt(startupName, website, context) {
     var safeName = startupName.trim() || 'this startup';
-    var safeWebsite = webstie.trim();
+    var safeWebsite = website.trim();
     var baseIntro = [
         'You are an assistant that writes concise, business-style value propositions for startups.',
         'Use the website information to infer what the startup does, who it serves, and what main benefit it provides.',
