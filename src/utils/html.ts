@@ -86,3 +86,21 @@ function extractPageMeta(html: string): {title?: string, description?: string} {
 
     return result;
 }
+
+
+/**
+ * Extracts the first <h1>...</h1> heading from the HTML, if present.
+ */
+function extractMainHeading(html: string): string | undefined {
+  if (!html) {
+    return undefined;
+  }
+
+  const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (h1Match && h1Match[1]) {
+    const h1Text = stripHtml(h1Match[1]);
+    return h1Text !== '' ? h1Text : undefined;
+  }
+
+  return undefined;
+}
