@@ -31,7 +31,8 @@ class AcceleratorRepository {
         .getValues();
 
         const accelerators: Accelerator[] = values.map((row) => {
-            const website = String(row[0] || '').trim();
+            const rawWebsite = String(row[0] || '').trim();
+            const website = normalizeUrl(rawWebsite);
             const name = String(row[1] || '').trim();
             const country = String(row[2] || '').trim();
             const cityRaw = row[3];
