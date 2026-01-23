@@ -10,15 +10,18 @@ function onOpen() {
 }
 function runScoutingAccelerators() {
     var SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("Running accelerator scouting (small curated batch)...");
+    SpreadSheet.toast('Running smart accelerator scouting (SerpAPI + HTML fetching and parsing + LLM + Fallback)...');
     try {
-        var BATCH_SIZE = 10;
-        var result = scoutAccelerators(BATCH_SIZE);
-        SpreadSheet.toast("Accelerator scouting: added ".concat(result.added, ", already present ").concat(result.alreadyPresent, " (candidates: ").concat(result.totalCandidates, ")."));
+        var BATCH_SIZE = 3;
+        var result = scoutAcceleratorsSmart(BATCH_SIZE);
+        var msg = "Accelerator Scouting added: ".concat(result.totalAdded, " ") +
+            "(SerpAPI: ".concat(result.addedFromSerp, ", curated list: ").concat(result.addedFromCurated, "), ") +
+            "already present: ".concat(result.alreadyPresent, ".");
+        SpreadSheet.toast(msg);
     }
     catch (e) {
-        AppLogger.error('runScoutingAccelerators', 'Unexpected error during accelerator scouting', e);
-        SpreadSheet.toast('Error during runScoutingAccelerators, check logs.');
+        AppLogger.error('runScoutingAccelerators', 'Unexpected error during smart accelerator scouting', e);
+        SpreadSheet.toast('Error during smart accelerator scouting, check logs.');
     }
 }
 function runUpdateStartups() {
