@@ -10,7 +10,16 @@ function onOpen() {
 }
 function runScoutingAccelerators() {
     var SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("runScoutingAccelerators called correctly.");
+    SpreadSheet.toast("Running accelerator scouting (small curated batch)...");
+    try {
+        var BATCH_SIZE = 10;
+        var result = scoutAccelerators(BATCH_SIZE);
+        SpreadSheet.toast("Accelerator scouting: added ".concat(result.added, ", already present ").concat(result.alreadyPresent, " (candidates: ").concat(result.totalCandidates, ")."));
+    }
+    catch (e) {
+        AppLogger.error('runScoutingAccelerators', 'Unexpected error during accelerator scouting', e);
+        SpreadSheet.toast('Error during runScoutingAccelerators, check logs.');
+    }
 }
 function runUpdateStartups() {
     var SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();

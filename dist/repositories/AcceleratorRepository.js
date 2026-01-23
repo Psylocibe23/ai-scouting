@@ -22,7 +22,8 @@ var AcceleratorRepository = /** @class */ (function () {
         var values = sheet.getRange(AcceleratorRepository.HEADER_ROW + 1, 1, numRows, AcceleratorRepository.NUM_COLS)
             .getValues();
         var accelerators = values.map(function (row) {
-            var website = String(row[0] || '').trim();
+            var rawWebsite = String(row[0] || '').trim();
+            var website = normalizeUrl(rawWebsite);
             var name = String(row[1] || '').trim();
             var country = String(row[2] || '').trim();
             var cityRaw = row[3];
