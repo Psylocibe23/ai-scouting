@@ -10,15 +10,21 @@ function onOpen() {
 
 function runScoutingAccelerators() {
     const SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("Running accelerator scouting (small curated batch)...")
+    SpreadSheet.toast('Running smart accelerator scouting (SerpAPI + HTML fetching and parsing + LLM + Fallback)...'):
 
     try {
-        const BATCH_SIZE = 10;
-        const result = scoutAccelerators(BATCH_SIZE);
-        SpreadSheet.toast(`Accelerator scouting: added ${result.added}, already present ${result.alreadyPresent} (candidates: ${result.totalCandidates}).`);
+        const BATCH_SIZE = 3;
+        const result = scoutAcceleratorsSmart(BATCH_SIZE);
+
+        const msg = 
+        `Accelerator Scouting added: ${result.totalAdded} ` +
+        `(SerpAPI: ${result.addedFromSerp}, cyrated list: ${result.addedFromCurated}), ` + 
+        `already present: ${result.alreadyPresent}.`
+
+        SpreadSheet.toast(msg);
     } catch (e) {
-        AppLogger.error('runScoutingAccelerators', 'Unexpected error during accelerator scouting', e);
-        SpreadSheet.toast('Error during runScoutingAccelerators, check logs.')
+        AppLogger.error('runScoutingAccelerators', 'Unexpected error during smart accelerator scouting', e);
+        SpreadSheet.toast('Error during smart accelerator scoutin, check logs.')
     }
 }
 
