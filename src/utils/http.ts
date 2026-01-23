@@ -88,3 +88,12 @@ function fetchHtml(
         };
     }
 }
+
+/**
+ * Reads the SerpAPI key from the Script Properties, returns null if not set.
+ */
+function getSerpApiKey(): string | null {
+    const props = PropertiesService.getScriptProperties();
+    const key = (props.getProperty('SERP_API_KEY') || '').trim();
+    return key || null;
+}
