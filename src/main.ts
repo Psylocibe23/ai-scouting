@@ -10,7 +10,16 @@ function onOpen() {
 
 function runScoutingAccelerators() {
     const SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("runScoutingAccelerators called correctly.")
+    SpreadSheet.toast("Running accelerator scouting (small curated batch)...")
+
+    try {
+        const BATCH_SIZE = 10;
+        const result = scoutAccelerators(BATCH_SIZE);
+        SpreadSheet.toast(`Accelerator scouting: added ${result.added}, already present ${result.alreadyPresent} (candidates: ${result.totalCandidates}).`);
+    } catch (e) {
+        AppLogger.error('runScoutingAccelerators', 'Unexpected error during accelerator scouting', e);
+        SpreadSheet.toast('Error during runScoutingAccelerators, check logs.')
+    }
 }
 
 function runUpdateStartups() {
