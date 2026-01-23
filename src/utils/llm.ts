@@ -90,7 +90,7 @@ function buildWebsiteContext(html: string): string {
  * such that these fields correspond to the sentence:
  *   "Startup <X> helps <target Y> do <what W> so that <benefit Z>."
  */
-function buildPrompt(startupName: string, website: string, context: string): string {
+function buildVpPrompt(startupName: string, website: string, context: string): string {
   const safeName = startupName.trim() || 'this startup';
   const safeWebsite = website.trim();
 
@@ -181,4 +181,107 @@ function buildPrompt(startupName: string, website: string, context: string): str
   const sections = [baseIntro, contextPart, jsonFormatExplanation, examples, task];
 
   return sections.join('\n\n');
+}
+
+
+/**
+ * Calls the configured LLM provider (Groq / OpenAI-compatible) and expects
+ * a SINGLE JSON object in the response content.
+ * - uses getLlmConfig() for provider/model/apiKey
+ * - sends system + user messages to the /chat/completions endpoint
+ * - forces temperature=0 and response_format=json_object for deterministic JSON
+ * - on success: returns the parsed JSON object
+ * - on failure: logs and returns null.
+ */
+function CallLlmJson(systemPrompt: string, userPrompt: string, actionName: string): any | null {
+    const config = getLlmConfig();
+    const provider = config.provider.toLowerCase();
+    // Groq provider endpoint
+    let endpoint: string;
+    if (provider === 'groq') {
+        endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+    } else {
+        if (provider.startsWith('http')) {
+            endpoint = provider;
+        } else {
+            endpoint = 'https://api.openai.com/v1/chat/completions';
+        }
+    }
+
+    const body = {
+        model: config.model,
+        messages: [
+            {role: 'system', content: systemPrompt},
+            {role: 'user', content: userPrompt}
+        ],
+        temperature: 0,
+        response_format: { type: 'json_object' },
+        max_tokes: 512,
+    };
+
+    const options: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions = {
+        method: 'post',
+        muteHttpExceptions: true,
+        contentType: 'application/json',
+        headers: {Authorization: 'Bearer ' + config.apiKey,},
+        payload: JSON.stringify(body),
+    };
+
+    try {
+        const start = new Date().getTime();
+        const resp = UrlFetchApp.fetch(endpoint, options);
+        const end = new Date().getTime();
+        const status = resp.getResponseCode();
+        const text = resp.getContentText() || '';
+
+        if (status < 200 || status >= 300) {
+            AppLogger.error(actionName, 'LLM HTTP error', { statusCode: status, bodyPreview: text.slice(0, 200) });
+            return null;
+        }
+
+        let data: any;
+        try {
+            data = JSON.parse(text);
+        } catch (parseRespErr) {
+            AppLogger.error(actionName, 'Failed to parse LLM HTTP JSON response', { error: String(parseRespErr), bodyPreview: text.slice(0, 200) });
+            return null;
+        }
+
+        const usage = data && data.usage ? data.usage : undefined;
+        AppLogger.info(actionName, 'LLM call succeeded', {statusCode: status, durationMs: end - start, ysage: usage,});
+
+        if (!data.choices ||
+            !data.choices[0] ||
+            !data.choices[0].message ||
+            !data.choices[0].message.content
+        ) {
+            AppLogger.error(actionName, 'LLM response missing choices[0].message.content', data);
+            return null;
+        }
+
+        let content: string = String(data.choices[0].message.content || '').trim();
+
+        // Be robust against ```json ... ``` wrappers
+        if (content.startsWith('```')) {
+            content = content.replace(/^```json/i, '').replace(/^```/i, '').replace(/```$/i, '').trim();
+        }
+
+        // take substring between first '{' and last '}' if needed
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            content = content.substring(firstBrace, lastBrace + 1).trim();
+        }
+
+        try {
+            const obj = JSON.parse(content);
+            return obj;
+        } catch (jsonErr) {
+            AppLogger.error(actionName, 'LLM did not return valid JSON in message.content', { error: String(jsonErr), rawContentPreview: content.slice(0, 300) });
+            return null;
+        }
+    } catch (e) {
+        AppLogger.error(actionName, 'Exception while calling LLM endpoint', e);
+        return null;
+    }
 }
