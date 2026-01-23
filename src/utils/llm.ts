@@ -1,5 +1,5 @@
 /**
- * Configurations to cal LLM provider.
+ * Configurations to call LLM provider.
  */
 interface LlmConfig {
     provider: string;
@@ -50,13 +50,39 @@ function getLlmConfig(): LlmConfig {
 
 
 /**
+ * Use fetched metadata to create context proposition for LLM prompt
+ */
+function buildWebsiteContext(html: string): string {
+    const meta = extractPageMeta(html);
+    const h1 = extractMainHeading(html);
+
+    const parts: string[] = [];
+
+    if (meta.title) {
+        parts.push(meta.title);
+    }
+
+    if (meta.description) {
+        parts.push(meta.description);
+    }
+
+    if (h1) {
+        parts.push(h1)
+    }
+    // Join and truncate to keep context compact
+    const joined = parts.join(' | ');
+     return joined.length > 500 ? joined.slice(0, 500) : joined;
+}
+
+
+/**
  * Builds a prompt to be passed to LLM to generate a value proposition for a startup.
  * The LLM is instructed to produce exactly one sentence of the format:
  *      "Startup <X> helps <target Y> do <what W> so that <benefit Z>."
  */
-function buildPrompt(startupName: string, webstie: string, context: string): string {
+function buildPrompt(startupName: string, website: string, context: string): string {
     const safeName = startupName.trim() || 'this startup';
-    const safeWebsite = webstie.trim();
+    const safeWebsite = website.trim();
 
     const baseIntro = [
     'You are an assistant that writes concise, business-style value propositions for startups.',
