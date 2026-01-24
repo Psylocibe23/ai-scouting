@@ -221,7 +221,7 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   }
 
   // Build compact textual context from HTML (title, description, h1)
-  const htmlContext = buildWebsiteContext(fetchResult.content);
+  const htmlContext = buildWebsiteContext(normalizedWebsite, fetchResult.content, action + '.context');
 
   // Combine snippet (from SerpAPI, if any) and HTML context
   let combinedContext = '';
