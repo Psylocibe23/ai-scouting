@@ -501,6 +501,13 @@ function discoverAcceleratorsFromSerpApi(maxResults: number = 10): Accelerator[]
             const pathLike = link.toLowerCase();
             const textForType = (title + ' ' + snippet).toLowerCase();
 
+            // Skip EU-Startups style media/article pages (year in the path + media domain).
+            const path = link.replace(/^https?:\/\/[^/]+/i, '').toLowerCase();
+            if (/\b20\d{2}\b/.test(path) && /eu-startups\.com/.test(link.toLowerCase())) {
+              AppLogger.info(action, 'Skipping media/article domain result', { link, title });
+              return;
+            }
+
             // Skip obvious "best/top/list of accelerators" articles.
             if (
               /best .*accelerator/.test(textForType) ||
