@@ -74,6 +74,7 @@ var AcceleratorRepository = /** @class */ (function () {
             a.focus || '',
         ]; });
         sheet.getRange(startRow, 1, rows.length, AcceleratorRepository.NUM_COLS).setValues(rows);
+        sheet.getRange(startRow, 1, rows.length, AcceleratorRepository.NUM_COLS).setHorizontalAlignment('center');
         adjustColumnWidths(sheet, AcceleratorRepository.NUM_COLS);
     };
     AcceleratorRepository.SHEET_NAME = 'accelerators';
