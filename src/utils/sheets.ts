@@ -38,7 +38,7 @@ function adjustColumnWidths(
   }
 
   const data = sheet.getRange(1, 1, lastRow, numCols).getValues();
-  const PX_PER_CHAR = 7; // rough approximation of pixels per character
+  const PX_PER_CHAR = 8; // rough approximation of pixels per character
 
   for (let col = 0; col < numCols; col++) {
     let maxLen = 0;
