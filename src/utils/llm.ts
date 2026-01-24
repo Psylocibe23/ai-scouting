@@ -18,7 +18,7 @@ function getLlmConfig(): LlmConfig {
     const model = (props.getProperty('LLM_MODEL') || '').trim();
 
     // Try multiple options for API KEY
-    const apiKeyCandidates = ['LLM_API_KEY', 'GROQ_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY', 'API_KEY']
+    const apiKeyCandidates = ['LLM_API_KEY', 'GROQ_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY', 'API_KEY'];
 
     let apiKey = '';
     for (let i = 0; i < apiKeyCandidates.length; i++) {
@@ -50,29 +50,32 @@ function getLlmConfig(): LlmConfig {
 
 
 /**
- * Use fetched metadata to create context proposition for LLM prompt
+ * Builds an LLM-ready context string from a website HTML:
+ * - uses buildPageInfo (main + aux pages)
+ * - falls back to simple meta + H1 if something goes wrong.
  */
-function buildWebsiteContext(html: string): string {
-    const meta = extractPageMeta(html);
-    const h1 = extractMainHeading(html);
+function buildWebsiteContext(url: string, html: string, actionName: string = 'buildWebsiteContext'): string {
+  if (!html) return '';
+
+  try {
+    const pageInfo = buildPageInfo(url, html, actionName + '.page');
+    return pageInfo.combinedText;
+  } catch (e) {
+    AppLogger.error(actionName, 'Error while building PageInfo; falling back to simple context', e);
+
+    const meta = extractPageMeta(html, actionName + '.fallback.meta');
+    const h1 = extractMainHeading(html, actionName + '.fallback.h1');
 
     const parts: string[] = [];
+    if (meta.title) parts.push(meta.title);
+    if (meta.description) parts.push(meta.description);
+    if (h1) parts.push(h1);
 
-    if (meta.title) {
-        parts.push(meta.title);
-    }
-
-    if (meta.description) {
-        parts.push(meta.description);
-    }
-
-    if (h1) {
-        parts.push(h1)
-    }
-    // Join and truncate to keep context compact
     const joined = parts.join(' | ');
-     return joined.length > 500 ? joined.slice(0, 500) : joined;
+    return joined.length > 500 ? joined.slice(0, 500) : joined;
+  }
 }
+
 
 
 /**
