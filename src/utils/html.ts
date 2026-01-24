@@ -410,6 +410,16 @@ function buildPageInfo(baseUrl: string, html: string, actionName: string = 'buil
         const footerLinks = extractFooterLinks(html, baseUrl, actionName + '.footer.links');
         const aux = classifyAuxLinks(footerLinks);
 
+        if (aux.policies) {
+          AppLogger.info(actionName, 'Found policy link', { url: aux.policies });
+        }
+        if (aux.cookies) {
+          AppLogger.info(actionName, 'Found cookies link', { url: aux.cookies });
+        }
+        if (aux.about) {
+          AppLogger.info(actionName, 'Found about link', { url: aux.about });
+        }
+
         /**
          * Helper: fetch an auxiliary page and extract info.
          */
@@ -441,8 +451,19 @@ function buildPageInfo(baseUrl: string, html: string, actionName: string = 'buil
         }
 
         policy = fetchAndExtract(aux.policies, 'policy');
+        if (policy) {
+            AppLogger.info(actionName, 'Parsed policy page', { url: policy.url });
+        }
+
         cookies = fetchAndExtract(aux.cookies, 'cookies');
+        if (cookies) {
+            AppLogger.info(actionName, 'Parsed cookies page', { url: cookies.url });
+        }
+
         about = fetchAndExtract(aux.about, 'about');
+        if (about) {
+            AppLogger.info(actionName, 'Parsed about page', { url: about.url });
+        }
     }
 
     // Build combined text for LLM.
