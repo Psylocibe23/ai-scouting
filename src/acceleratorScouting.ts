@@ -1,9 +1,11 @@
 /**
- * SerpAPI usage tracking and management *monthly max quota = 250 searches)
+ * SerpAPI usage tracking and management *monthly max quota = 250 searches).
  */
 const SERPAPI_MONTHLY_CALL_LIMIT = 240; // safety margin = 10
 const SERPAPI_USAGE_MONTH_KEY  = 'SERPAPI_USAGE_MONTH';
 const SERPAPI_USAGE_COUNT_KEY  = 'SERPAPI_USAGE_COUNT';
+// Tracks where we are in the Google result pages for SerpAPI ("start" parameter).
+const SERPAPI_START_INDEX_KEY = 'SERPAPI_START_INDEX'; 
 
 function getCurrentMonthKey(): string {
     const now = new Date();
@@ -45,10 +47,36 @@ function incrementSerpApiUsage(): number {
     return newCount;
 }
 
+/**
+ * Returns the current "start" index used for SerpAPI pagination.
+ * This is stored in Script Properties so it persists across runs.
+ */
+function getSerpApiStartIndex(): number {
+  const props = PropertiesService.getScriptProperties();
+  const raw = (props.getProperty(SERPAPI_START_INDEX_KEY) || '').trim();
+  const n = parseInt(raw || '0', 10);
+
+  if (isNaN(n) || n < 0) {
+    return 0;
+  }
+  return n;
+}
 
 /**
- * Small curated list of European accelerators used for the prototype.
- * In a real system, this could be replaced or complemented by a search API.
+ * Increments the "start" index for SerpAPI by the given step.
+ * This makes the next call fetch the next page of results.
+ */
+function bumpSerpApiStartIndex(step: number): void {
+  const props = PropertiesService.getScriptProperties();
+  const current = getSerpApiStartIndex();
+  const next = current + step;
+  props.setProperty(SERPAPI_START_INDEX_KEY, String(next));
+}
+
+
+
+/**
+ * Small curated list of European accelerators used for the prototype as safe fallback.
  */
 function getCuratedEuropeanAccelerators(): Accelerator[] {
   const raw: {
@@ -423,12 +451,14 @@ function discoverAcceleratorsFromSerpApi(maxResults: number = 10): Accelerator[]
         return [];
     }
 
+    const startIndex = getSerpApiStartIndex();
     const query = 'startup accelerator in europe';
     const params: {[key: string]: string} = {
         engine: 'google',
         q: query,
         api_key: apiKey,
         num: String(maxResults), // how many results we get from this call
+        start: String(startIndex),
     };
 
     const qs = Object.keys(params).map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
@@ -507,7 +537,10 @@ function discoverAcceleratorsFromSerpApi(maxResults: number = 10): Accelerator[]
           });
 
 
-         AppLogger.info(action, 'SerpAPI discovery completed', {query, found: accelerators.length, usageAfterCall: newCount});
+         AppLogger.info(action, 'SerpAPI discovery completed', {query, found: accelerators.length, usageAfterCall: newCount, startIndexUsed: startIndex,});
+
+        // Move the "window" forward so next call fetches the next set of results.
+        bumpSerpApiStartIndex(maxResults);
          
          return accelerators;
     } catch (e) {
