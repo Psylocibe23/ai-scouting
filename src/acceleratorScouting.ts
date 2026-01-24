@@ -2,7 +2,7 @@
  * SerpAPI usage tracking and management *monthly max quota = 250 searches)
  */
 const SERPAPI_MONTHLY_CALL_LIMIT = 240; // safety margin = 10
-const SERPAPI_USAGE_MONTH_KEY  = 'SERPAI_USAGE_MONTH';
+const SERPAPI_USAGE_MONTH_KEY  = 'SERPAPI_USAGE_MONTH';
 const SERPAPI_USAGE_COUNT_KEY  = 'SERPAPI_USAGE_COUNT';
 
 function getCurrentMonthKey(): string {
@@ -262,7 +262,8 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   userLines.push('  "name": "Accelerator name",');
   userLines.push('  "country": "Country where the accelerator is based",');
   userLines.push('  "city": "City where the accelerator is based (or null if unknown)",');
-  userLines.push('  "focus": "Main focus or vertical of the accelerator (or null if unknown)"');
+  userLines.push('  "focus": "Main focus or vertical of the accelerator (or null if unknown),"');
+  userLines.push('  "is_accelerator": true');
   userLines.push('}');
 
   // Few-shot Prompting (robustness)
@@ -279,7 +280,8 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   userLines.push('  "name": "Seedcamp",');
   userLines.push('  "country": "United Kingdom",');
   userLines.push('  "city": "London",');
-  userLines.push('  "focus": "European pre-seed and seed tech startups"');
+  userLines.push('  "focus": "European pre-seed and seed tech startups,"');
+  userLines.push('  "is_accelerator": true');
   userLines.push('}');
 
   // Example 2
@@ -292,7 +294,8 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   userLines.push('  "name": "Techstars London",');
   userLines.push('  "country": "United Kingdom",');
   userLines.push('  "city": "London",');
-  userLines.push('  "focus": "early-stage technology startups in mentorship-driven accelerator programs"');
+  userLines.push('  "focus": "early-stage technology startups in mentorship-driven accelerator programs,"');
+  userLines.push('  "is_accelerator": true');
   userLines.push('}');
 
   // Final guidelines & instruction
@@ -302,10 +305,12 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   userLines.push('- "country" should be a country name like "France", "Germany", "United Kingdom".');
   userLines.push('- "city" can be null if you cannot confidently infer it.');
   userLines.push('- "focus" should be a short phrase like "early-stage tech startups" or null.');
+  userLines.push('- "is_accelerator" MUST be true ONLY if the website itself is a startup accelerator / accelerator program.');
+  userLines.push('- If the page is an article, blog, guide, or directory listing accelerators, then set "is_accelerator" to false.');
   userLines.push('');
   userLines.push('Now, based on the provided website URL and context at the top,');
   userLines.push('produce ONLY one JSON object in the same style as the examples above,');
-  userLines.push('with keys exactly: "name", "country", "city", "focus".');
+  userLines.push('with keys exactly: "name", "country", "city", "focus", "is_accelerator".');
   userLines.push('Return ONLY the JSON object, with no extra commentary or explanations.');
 
   const userPrompt = userLines.join('\n');
@@ -317,6 +322,25 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
     AppLogger.warn(action, 'LLM returned null or non-object JSON, skipping.', { website: normalizedWebsite });
     return null;
   }
+
+  // Classification: drop pages that are not actual accelerators.
+  let isAccelerator = false;
+
+  if (typeof json.is_accelerator === 'boolean') {
+      isAccelerator = json.is_accelerator;
+    } else if (typeof json.type === 'string') {
+      // extra robustness if the model decides to return a "type" field.
+      const t = json.type.toLowerCase();
+      isAccelerator = (t === 'accelerator' || t === 'startup accelerator' || t === 'accelerator program');
+    }
+
+    if (!isAccelerator) {
+      AppLogger.info(action, 'Skipping non-accelerator page according to LLM classification', {
+        website: normalizedWebsite,
+        rawType: json.type,
+      });
+      return null;
+    }
 
   // Map JSON to Accelerator
 
@@ -435,7 +459,7 @@ function discoverAcceleratorsFromSerpApi(maxResults: number = 10): Accelerator[]
             return [];
         }
 
-           const organic = data.organic_results || [];
+          const organic = data.organic_results || [];
           const accelerators: Accelerator[] = [];
 
           organic.forEach((r) => {
@@ -443,6 +467,22 @@ function discoverAcceleratorsFromSerpApi(maxResults: number = 10): Accelerator[]
             const title = (r.title || '').trim();
             const snippet = (r.snippet || '').trim();
             const websiteNorm = normalizeUrl(link);
+
+            const pathLike = link.toLowerCase();
+            const textForType = (title + ' ' + snippet).toLowerCase();
+
+            // Skip obvious "best/top/list of accelerators" articles.
+            if (
+              /best .*accelerator/.test(textForType) ||
+              /top .*accelerator/.test(textForType) ||
+              /list of .*accelerator/.test(textForType) ||
+              pathLike.includes('/best-') ||
+              pathLike.includes('/top-') ||
+              pathLike.includes('/list-')
+            ) {
+              AppLogger.info(action, 'Skipping article/directory-style Serp result', { link, title });
+              return;
+            }
             if (!websiteNorm) {
               return;
             }
