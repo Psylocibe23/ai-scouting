@@ -69,3 +69,29 @@ function areSameWebsite(a: string, b: string): boolean {
 
     return na === nb;
 }
+
+
+/**
+ * Extract Host name.
+ */
+function getHostName(url: string): string | null {
+  if (!url) return null;
+  const m = url.match(/^https?:\/\/([^\/?#]+)/i);
+  if (!m || !m[1]) return null;
+  return m[1].toLowerCase();
+}
+
+
+/**
+ * Returns true if an url is likely an internal link (same hostname or subdomain).
+ */
+function isInternalLink(baseUrl: string, candidateUrl: string): boolean {
+  const baseHost = getHostName(baseUrl);
+  const candidateHost = getHostName(candidateUrl);
+  if (!baseHost || !candidateHost) return false;
+
+  if (candidateHost === baseHost) return true;
+  // Accept subdomains: e.g. demo.seedcamp.com for seedcamp.com.
+  if (candHost.endsWith('.' + baseHost)) return true;
+  return false;
+}
