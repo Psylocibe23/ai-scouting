@@ -191,7 +191,7 @@ function inferAccelFromWebsite(website, snippetHint) {
         return null;
     }
     // Build compact textual context from HTML (title, description, h1)
-    var htmlContext = buildWebsiteContext(fetchResult.content);
+    var htmlContext = buildWebsiteContext(normalizedWebsite, fetchResult.content, action + '.context');
     // Combine snippet (from SerpAPI, if any) and HTML context
     var combinedContext = '';
     if (snippetHint && snippetHint.trim() !== '') {

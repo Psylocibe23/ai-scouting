@@ -32,24 +32,32 @@ function getLlmConfig() {
     };
 }
 /**
- * Use fetched metadata to create context proposition for LLM prompt
+ * Builds an LLM-ready context string from a website HTML:
+ * - uses buildPageInfo (main + aux pages)
+ * - falls back to simple meta + H1 if something goes wrong.
  */
-function buildWebsiteContext(html) {
-    var meta = extractPageMeta(html);
-    var h1 = extractMainHeading(html);
-    var parts = [];
-    if (meta.title) {
-        parts.push(meta.title);
+function buildWebsiteContext(url, html, actionName) {
+    if (actionName === void 0) { actionName = 'buildWebsiteContext'; }
+    if (!html)
+        return '';
+    try {
+        var pageInfo = buildPageInfo(url, html, actionName + '.page');
+        return pageInfo.combinedText;
     }
-    if (meta.description) {
-        parts.push(meta.description);
+    catch (e) {
+        AppLogger.error(actionName, 'Error while building PageInfo; falling back to simple context', e);
+        var meta = extractPageMeta(html, actionName + '.fallback.meta');
+        var h1 = extractMainHeading(html, actionName + '.fallback.h1');
+        var parts = [];
+        if (meta.title)
+            parts.push(meta.title);
+        if (meta.description)
+            parts.push(meta.description);
+        if (h1)
+            parts.push(h1);
+        var joined = parts.join(' | ');
+        return joined.length > 500 ? joined.slice(0, 500) : joined;
     }
-    if (h1) {
-        parts.push(h1);
-    }
-    // Join and truncate to keep context compact
-    var joined = parts.join(' | ');
-    return joined.length > 500 ? joined.slice(0, 500) : joined;
 }
 /**
  * Builds a prompt to be passed to the LLM to generate a value proposition
