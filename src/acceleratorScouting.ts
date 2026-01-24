@@ -262,7 +262,7 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   userLines.push('  "name": "Accelerator name",');
   userLines.push('  "country": "Country where the accelerator is based",');
   userLines.push('  "city": "City where the accelerator is based (or null if unknown)",');
-  userLines.push('  "focus": "Main focus or vertical of the accelerator (or null if unknown),"');
+  userLines.push('  "focus": "Main focus or vertical of the accelerator (or null if unknown)",');
   userLines.push('  "is_accelerator": true');
   userLines.push('}');
 
@@ -280,7 +280,7 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   userLines.push('  "name": "Seedcamp",');
   userLines.push('  "country": "United Kingdom",');
   userLines.push('  "city": "London",');
-  userLines.push('  "focus": "European pre-seed and seed tech startups,"');
+  userLines.push('  "focus": "European pre-seed and seed tech startups",');
   userLines.push('  "is_accelerator": true');
   userLines.push('}');
 
@@ -294,7 +294,7 @@ function inferAccelFromWebsite(website: string, snippetHint?: string): Accelerat
   userLines.push('  "name": "Techstars London",');
   userLines.push('  "country": "United Kingdom",');
   userLines.push('  "city": "London",');
-  userLines.push('  "focus": "early-stage technology startups in mentorship-driven accelerator programs,"');
+  userLines.push('  "focus": "early-stage technology startups in mentorship-driven accelerator programs",');
   userLines.push('  "is_accelerator": true');
   userLines.push('}');
 
