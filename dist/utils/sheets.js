@@ -28,7 +28,7 @@ function adjustColumnWidths(sheet, numCols, maxChars, minWidthPx, maxWidthPx) {
         return;
     }
     var data = sheet.getRange(1, 1, lastRow, numCols).getValues();
-    var PX_PER_CHAR = 7; // rough approximation of pixels per character
+    var PX_PER_CHAR = 8; // rough approximation of pixels per character
     for (var col = 0; col < numCols; col++) {
         var maxLen = 0;
         for (var row = 0; row < data.length; row++) {

@@ -11,11 +11,13 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 /**
- * SerpAPI usage tracking and management *monthly max quota = 250 searches)
+ * SerpAPI usage tracking and management *monthly max quota = 250 searches).
  */
 var SERPAPI_MONTHLY_CALL_LIMIT = 240; // safety margin = 10
 var SERPAPI_USAGE_MONTH_KEY = 'SERPAPI_USAGE_MONTH';
 var SERPAPI_USAGE_COUNT_KEY = 'SERPAPI_USAGE_COUNT';
+// Tracks where we are in the Google result pages for SerpAPI ("start" parameter).
+var SERPAPI_START_INDEX_KEY = 'SERPAPI_START_INDEX';
 function getCurrentMonthKey() {
     var now = new Date();
     var year = now.getFullYear();
@@ -51,8 +53,30 @@ function incrementSerpApiUsage() {
     return newCount;
 }
 /**
- * Small curated list of European accelerators used for the prototype.
- * In a real system, this could be replaced or complemented by a search API.
+ * Returns the current "start" index used for SerpAPI pagination.
+ * This is stored in Script Properties so it persists across runs.
+ */
+function getSerpApiStartIndex() {
+    var props = PropertiesService.getScriptProperties();
+    var raw = (props.getProperty(SERPAPI_START_INDEX_KEY) || '').trim();
+    var n = parseInt(raw || '0', 10);
+    if (isNaN(n) || n < 0) {
+        return 0;
+    }
+    return n;
+}
+/**
+ * Increments the "start" index for SerpAPI by the given step.
+ * This makes the next call fetch the next page of results.
+ */
+function bumpSerpApiStartIndex(step) {
+    var props = PropertiesService.getScriptProperties();
+    var current = getSerpApiStartIndex();
+    var next = current + step;
+    props.setProperty(SERPAPI_START_INDEX_KEY, String(next));
+}
+/**
+ * Small curated list of European accelerators used for the prototype as safe fallback.
  */
 function getCuratedEuropeanAccelerators() {
     var raw = [
@@ -358,12 +382,14 @@ function discoverAcceleratorsFromSerpApi(maxResults) {
         AppLogger.warn(action, "SerpAPI monthly limit reached or exceeded (".concat(usage.count, "/").concat(SERPAPI_MONTHLY_CALL_LIMIT, "). Skipping call."));
         return [];
     }
+    var startIndex = getSerpApiStartIndex();
     var query = 'startup accelerator in europe';
     var params = {
         engine: 'google',
         q: query,
         api_key: apiKey,
         num: String(maxResults), // how many results we get from this call
+        start: String(startIndex),
     };
     var qs = Object.keys(params).map(function (k) { return "".concat(encodeURIComponent(k), "=").concat(encodeURIComponent(params[k])); }).join('&');
     var url = "https://serpapi.com/search.json?".concat(qs);
@@ -423,7 +449,9 @@ function discoverAcceleratorsFromSerpApi(maxResults) {
                 accelerators_1.push(inferred);
             }
         });
-        AppLogger.info(action, 'SerpAPI discovery completed', { query: query, found: accelerators_1.length, usageAfterCall: newCount });
+        AppLogger.info(action, 'SerpAPI discovery completed', { query: query, found: accelerators_1.length, usageAfterCall: newCount, startIndexUsed: startIndex, });
+        // Move the "window" forward so next call fetches the next set of results.
+        bumpSerpApiStartIndex(maxResults);
         return accelerators_1;
     }
     catch (e) {
