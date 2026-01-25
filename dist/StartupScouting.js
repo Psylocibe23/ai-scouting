@@ -300,6 +300,12 @@ function generateValueProp(startup, actionName) {
         AppLogger.warn(actionName, 'Could not fetch startup website, skipping value-prop', { website: websiteNorm, statusCode: fetchRes.statusCode });
         return null;
     }
+    var html = fetchRes.content || '';
+    // Parked-domain heuristic: skip domain marketplaces / "for sale" pages.
+    if (isParkedDomainPage(html)) {
+        AppLogger.info(actionName, 'Detected parked / for-sale domain page, skipping value-prop.', { website: websiteNorm });
+        return null;
+    }
     // Build structured context from main/about/policy/cookies pages
     var pageInfo = buildPageInfo(websiteNorm, fetchRes.content, actionName + '.pageInfo');
     var context = pageInfo.combinedText || '';
@@ -471,7 +477,7 @@ function getCuratedDemoStartups(existingWebsites) {
  * Scans accelerators and discovers startups from their websites.
  * - reads all accelerators from accelerators sheet
  * - keep tracks of already scanned in ScriptProperties
- * - process at most batch_size accelerators (default = 3)
+ * - process at most batch_size accelerators (default = 2)
  * - for each accelerator:
  *    - parse main page
  *    - finds portfolio/alumni/startups links
@@ -480,7 +486,7 @@ function getCuratedDemoStartups(existingWebsites) {
  * - appends startups to sheet in batch
 */
 function updateStartupsFromAccelerators(batch_size, maxStartupsPerAcc, maxPagePerAcc, actionName) {
-    if (batch_size === void 0) { batch_size = 3; }
+    if (batch_size === void 0) { batch_size = 2; }
     if (maxStartupsPerAcc === void 0) { maxStartupsPerAcc = 3; }
     if (maxPagePerAcc === void 0) { maxPagePerAcc = 3; }
     if (actionName === void 0) { actionName = 'updateStartupsFromAccelerators'; }
@@ -559,6 +565,12 @@ function updateStartupsFromAccelerators(batch_size, maxStartupsPerAcc, maxPagePe
                 }
                 var stWebNorm = normalizeUrl(st.website);
                 if (!stWebNorm) {
+                    return;
+                }
+                // Quick health check: skip if startup website returns HTTP ≥ 400.
+                var health = fetchHtml(stWebNorm, undefined, "".concat(actionName, ".healthCheck"));
+                if (!health.ok || (typeof health.statusCode === 'number' && health.statusCode >= 400)) {
+                    AppLogger.warn(actionName, 'Startup website failed health check, skipping.', { accelerator: accWebsite, startupWebsite: stWebNorm, statusCode: health.statusCode, });
                     return;
                 }
                 // Global dedup vs existing startups and this run's new startups.
