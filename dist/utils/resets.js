@@ -5,7 +5,6 @@
 function resetTrackingProperties(actionName) {
     if (actionName === void 0) { actionName = 'resetTrackingProperties'; }
     var props = PropertiesService.getScriptProperties();
-    var tz = Session.getScriptTimeZone();
     // Delete old tracker values (if present)
     var trackerKeys = [SERPAPI_START_INDEX_KEY, STARTUP_ACCEL_CURSOR_KEY];
     trackerKeys.forEach(function (key) {
