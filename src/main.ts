@@ -56,7 +56,7 @@ function runUpdateStartups() {
   ss.toast('Updating startups from accelerator websites (portfolio/alumni/batch pages)...');
 
   try {
-    const BATCH_ACCELERATORS = 3; // how many accelerators per run
+    const BATCH_ACCELERATORS = 2; // how many accelerators per run
     const MAX_STARTUPS_PER_ACC = 3; // cap startups per accelerator
     const MAX_PAGES_PER_ACC = 3; // cap portfolio pages per accelerator
 

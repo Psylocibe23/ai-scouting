@@ -573,7 +573,7 @@ interface InferStartupsFromAcc {
  * Scans accelerators and discovers startups from their websites.
  * - reads all accelerators from accelerators sheet
  * - keep tracks of already scanned in ScriptProperties
- * - process at most batch_size accelerators (default = 3)
+ * - process at most batch_size accelerators (default = 2)
  * - for each accelerator:
  *    - parse main page
  *    - finds portfolio/alumni/startups links
@@ -581,7 +581,7 @@ interface InferStartupsFromAcc {
  * - de-duplicates using website as primary key
  * - appends startups to sheet in batch
 */
-function updateStartupsFromAccelerators(batch_size: number = 3, maxStartupsPerAcc: number = 3, 
+function updateStartupsFromAccelerators(batch_size: number = 2, maxStartupsPerAcc: number = 3, 
   maxPagePerAcc: number = 3, actionName: string = 'updateStartupsFromAccelerators'): InferStartupsFromAcc {
 
     const accelerators = AcceleratorRepository.getAll();
