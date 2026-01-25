@@ -101,6 +101,7 @@ class StartupRepository {
         ]);
 
         sheet.getRange(startRow, 1, rows.length, StartupRepository.NUM_COLS).setValues(rows);
+        sheet.getRange(startRow, 1, rows.length, StartupRepository.NUM_COLS).setHorizontalAlignment('center');
         adjustColumnWidths(sheet, StartupRepository.NUM_COLS);
     }
 
@@ -178,6 +179,42 @@ class StartupRepository {
                 updatedCount++;
             });
 
-            AppLogger.info(action, `Applied value_proposition updates to ${updatedCount} startups out of ${updates.length} requested.`);          
+            AppLogger.info(action, `Applied value_proposition updates to ${updatedCount} startups out of ${updates.length} requested.`);  
+            
+            if (updatedCount > 0) {
+                formatStartupsSheetAfterVpUpdate(sheet, `${action}.format`);
+            }
         }
+}
+
+/**
+ * Re-align and resize the startups sheet after value_proposition updates.
+ */
+function formatStartupsSheetAfterVpUpdate( sheet: GoogleAppsScript.Spreadsheet.Sheet, actionName: string = 'formatStartupsSheetAfterVpUpdate'): void {
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+
+  // Nothing to format 
+  if (lastRow <= 1 || lastCol === 0) {
+    AppLogger.info(actionName, 'Nothing to format (header only or empty sheet).');
+    return;
+  }
+
+  // Center-align all data cells (keep header formatting as-is)
+  const dataRange = sheet.getRange(2, 1, lastRow - 1, lastCol);
+  dataRange.setHorizontalAlignment('center');
+
+  // Find the value_proposition column by header name and auto-resize it
+  const headerValues = sheet.getRange(1, 1, 1, lastCol).getValues()[0] as string[];
+  const vpIndex = headerValues.indexOf('value_proposition');
+
+  if (vpIndex >= 0) {
+    const vpCol = vpIndex + 1;
+    sheet.autoResizeColumn(vpCol);
+    AppLogger.info(actionName, 'Auto-resized value_proposition column', { columnIndex: vpCol });
+  } else {
+    AppLogger.warn(actionName, 'value_proposition column not found in headers, skipping auto-resize.', {
+      headers: headerValues,
+    });
+  }
 }
