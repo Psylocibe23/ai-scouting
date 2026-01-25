@@ -4,7 +4,7 @@ function onOpen() {
     .addItem('Scouting Accelerators', 'runScoutingAccelerators')
     .addItem('Update Startups', 'runUpdateStartups')
     .addItem('Generate Value Propositions', 'runGenerateValueProps')
-    .addItem('Export CSVs', 'runExportCsv')
+    .addItem('Reset Spreadsheet', 'runResetSpreadsheet')
     .addToUi();
 }
 
@@ -114,7 +114,26 @@ function runGenerateValueProps() {
   }
 }
 
-function runExportCsv() {
-    const SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("runExportCsv called correctly.")
+
+
+/**
+ * Full reset: tracker ScriptProperties + sheet data (headers preserved).
+ * Useful to re-run the whole pipeline from scratch.
+ */
+function runResetSpreadsheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  ss.toast('Resetting tracking state and clearing accelerators/startups data...');
+
+  try {
+    resetTrackingProperties();
+    resetSheets();
+
+    ss.toast('Reset completed: properties + data cleared (headers preserved).');
+  } catch (e) {
+    AppLogger.error('runResetSpreadsheet', 'Unexpected error during reset', e);
+    ss.toast('Error during reset, check logs.');
+  }
 }
+
+
+
