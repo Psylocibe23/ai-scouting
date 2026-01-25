@@ -80,6 +80,7 @@ var StartupRepository = /** @class */ (function () {
             a.last_updated || '',
         ]; });
         sheet.getRange(startRow, 1, rows.length, StartupRepository.NUM_COLS).setValues(rows);
+        sheet.getRange(startRow, 1, rows.length, StartupRepository.NUM_COLS).setHorizontalAlignment('center');
         adjustColumnWidths(sheet, StartupRepository.NUM_COLS);
     };
     /**
@@ -138,9 +139,41 @@ var StartupRepository = /** @class */ (function () {
             updatedCount++;
         });
         AppLogger.info(action, "Applied value_proposition updates to ".concat(updatedCount, " startups out of ").concat(updates.length, " requested."));
+        if (updatedCount > 0) {
+            formatStartupsSheetAfterVpUpdate(sheet, "".concat(action, ".format"));
+        }
     };
     StartupRepository.SHEET_NAME = 'startups';
     StartupRepository.HEADER_ROW = 1;
     StartupRepository.NUM_COLS = 7; // website, name, country, accelerator, value_proposition, category, last_updated
     return StartupRepository;
 }());
+/**
+ * Re-align and resize the startups sheet after value_proposition updates.
+ */
+function formatStartupsSheetAfterVpUpdate(sheet, actionName) {
+    if (actionName === void 0) { actionName = 'formatStartupsSheetAfterVpUpdate'; }
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    // Nothing to format 
+    if (lastRow <= 1 || lastCol === 0) {
+        AppLogger.info(actionName, 'Nothing to format (header only or empty sheet).');
+        return;
+    }
+    // Center-align all data cells (keep header formatting as-is)
+    var dataRange = sheet.getRange(2, 1, lastRow - 1, lastCol);
+    dataRange.setHorizontalAlignment('center');
+    // Find the value_proposition column by header name and auto-resize it
+    var headerValues = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var vpIndex = headerValues.indexOf('value_proposition');
+    if (vpIndex >= 0) {
+        var vpCol = vpIndex + 1;
+        sheet.autoResizeColumn(vpCol);
+        AppLogger.info(actionName, 'Auto-resized value_proposition column', { columnIndex: vpCol });
+    }
+    else {
+        AppLogger.warn(actionName, 'value_proposition column not found in headers, skipping auto-resize.', {
+            headers: headerValues,
+        });
+    }
+}
