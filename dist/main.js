@@ -25,15 +25,31 @@ function runScoutingAccelerators() {
     }
 }
 function runUpdateStartups() {
-    var SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("runUpdateStartups called correctly.");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    ss.toast('Updating startups from accelerator websites (portfolio/alumni/batch pages)...');
+    try {
+        var BATCH_ACCELERATORS = 3; // how many accelerators per run
+        var MAX_STARTUPS_PER_ACC = 3; // cap startups per accelerator
+        var MAX_PAGES_PER_ACC = 3; // cap portfolio pages per accelerator
+        var result = updateStartupsFromAccelerators(BATCH_ACCELERATORS, MAX_STARTUPS_PER_ACC, MAX_PAGES_PER_ACC);
+        var msg = "Startups update completed. " +
+            "Accelerators scanned: ".concat(result.acceleratorsScanned, "/").concat(result.acceleratorsTotal, ". ") +
+            "Without portfolio page: ".concat(result.acceleratorsNoPortfolio, ". ") +
+            "Startups discovered: ".concat(result.startupsDiscovered, ", ") +
+            "added to sheet: ".concat(result.startupsAdded, ".");
+        ss.toast(msg);
+    }
+    catch (e) {
+        AppLogger.error('runUpdateStartups', 'Unexpected error while updating startups from accelerators', e);
+        ss.toast('Error while updating startups from accelerators, check logs.');
+    }
 }
 function runGenerateValueProps() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     ss.toast('Generating value propositions for startups with missing text...');
     try {
         var BATCH_SIZE = 5; // or 3 for demo safety
-        var result = generateMissinValueProps(BATCH_SIZE);
+        var result = generateMissingValueProps(BATCH_SIZE);
         var msg = "Value propositions generation completed. " +
             "Processed: ".concat(result.processed, ", ") +
             "updated: ".concat(result.updated, ", ") +

@@ -13,11 +13,6 @@ var __assign = (this && this.__assign) || function () {
 /**
  * SerpAPI usage tracking and management *monthly max quota = 250 searches).
  */
-var SERPAPI_MONTHLY_CALL_LIMIT = 240; // safety margin = 10
-var SERPAPI_USAGE_MONTH_KEY = 'SERPAPI_USAGE_MONTH';
-var SERPAPI_USAGE_COUNT_KEY = 'SERPAPI_USAGE_COUNT';
-// Tracks where we are in the Google result pages for SerpAPI ("start" parameter).
-var SERPAPI_START_INDEX_KEY = 'SERPAPI_START_INDEX';
 function getCurrentMonthKey() {
     var now = new Date();
     var year = now.getFullYear();

@@ -341,9 +341,9 @@ function generateValueProp(startup, actionName) {
  * - respects website as primary key
  * - Applies updates via StartupRepository.updateValuePropsByWebsite in batch.
  */
-function generateMissinValueProps(batch_size, actionName) {
+function generateMissingValueProps(batch_size, actionName) {
     if (batch_size === void 0) { batch_size = 5; }
-    if (actionName === void 0) { actionName = 'generateMissinValueProps'; }
+    if (actionName === void 0) { actionName = 'generateMissingValueProps'; }
     var all = StartupRepository.getAll();
     if (all.length === 0) {
         AppLogger.info(actionName, 'No startups in sheet, nothing to do.');
@@ -410,5 +410,218 @@ function generateMissinValueProps(batch_size, actionName) {
         skippedError: skippedError,
     };
     AppLogger.info(actionName, 'Completed batch value_proposition generation', result);
+    return result;
+}
+/**
+ * Curated startups list as fallback for the demo.
+ */
+function getCuratedDemoStartups(existingWebsites) {
+    var raw = [
+        {
+            website: 'https://www.revolut.com',
+            name: 'Revolut',
+            country: 'United Kingdom',
+            accelerator: 'https://seedcamp.com',
+            category: 'Fintech',
+        },
+        {
+            website: 'https://www.transferwise.com',
+            name: 'Wise',
+            country: 'United Kingdom',
+            accelerator: 'https://seedcamp.com',
+            category: 'Fintech',
+        },
+        {
+            website: 'https://www.n26.com',
+            name: 'N26',
+            country: 'Germany',
+            accelerator: 'https://www.techstars.com/accelerators/london',
+            category: 'Fintech',
+        },
+    ];
+    var normalizedExisting = new Set();
+    existingWebsites.forEach(function (w) {
+        var n = normalizeUrl(w);
+        if (n) {
+            normalizedExisting.add(n);
+        }
+    });
+    var nowIso = new Date().toISOString();
+    var curated = [];
+    raw.forEach(function (r) {
+        var normWebsite = normalizeUrl(r.website);
+        var normAcc = normalizeUrl(r.accelerator);
+        if (!normWebsite || normalizedExisting.has(normWebsite)) {
+            return;
+        }
+        normalizedExisting.add(normWebsite);
+        curated.push({
+            website: normWebsite,
+            name: r.name,
+            country: r.country,
+            accelerator: normAcc || r.accelerator,
+            value_proposition: '',
+            category: r.category || '',
+            last_updated: nowIso,
+        });
+    });
+    return curated;
+}
+/**
+ * Scans accelerators and discovers startups from their websites.
+ * - reads all accelerators from accelerators sheet
+ * - keep tracks of already scanned in ScriptProperties
+ * - process at most batch_size accelerators (default = 3)
+ * - for each accelerator:
+ *    - parse main page
+ *    - finds portfolio/alumni/startups links
+ *    - for each page calls inferStartupsFromPortfolioPage(...)
+ * - de-duplicates using website as primary key
+ * - appends startups to sheet in batch
+*/
+function updateStartupsFromAccelerators(batch_size, maxStartupsPerAcc, maxPagePerAcc, actionName) {
+    if (batch_size === void 0) { batch_size = 3; }
+    if (maxStartupsPerAcc === void 0) { maxStartupsPerAcc = 3; }
+    if (maxPagePerAcc === void 0) { maxPagePerAcc = 3; }
+    if (actionName === void 0) { actionName = 'updateStartupsFromAccelerators'; }
+    var accelerators = AcceleratorRepository.getAll();
+    var totalAcc = accelerators.length;
+    if (totalAcc === 0) {
+        AppLogger.info(actionName, 'No accelerators in sheet, run scouting Accelerators to discover new ones.');
+        return {
+            acceleratorsTotal: 0,
+            acceleratorsScanned: 0,
+            acceleratorsNoPortfolio: 0,
+            startupsDiscovered: 0,
+            startupsAdded: 0
+        };
+    }
+    var existingStartupWebsites = StartupRepository.getExistingWebsites();
+    var props = PropertiesService.getScriptProperties();
+    var cursorRaw = (props.getProperty(STARTUP_ACCEL_CURSOR_KEY) || '').trim();
+    var cursor = parseInt(cursorRaw || '0', 10);
+    if (isNaN(cursor) || cursor < 0 || cursor >= totalAcc) {
+        cursor = 0;
+    }
+    var acceleratorsScanned = 0;
+    var acceleratorsNoPortfolio = 0;
+    var startupsDiscovered = 0;
+    var newStartups = [];
+    var newStartupWebsites = new Set();
+    var maxNewStartups = batch_size * maxStartupsPerAcc;
+    var _loop_1 = function (i) {
+        var accIndex = (cursor + i) % totalAcc;
+        var accelerator = accelerators[accIndex];
+        var accWebsite = normalizeUrl(accelerator.website);
+        if (!accWebsite) {
+            AppLogger.info(actionName, 'Skipping accelerator with invalid/empty website', { index: accIndex, website: accelerator.website });
+            acceleratorsScanned++;
+            return "continue";
+        }
+        acceleratorsScanned++;
+        // Fetch main accelerator page.
+        var fetchMain = fetchHtml(accWebsite, undefined, "".concat(actionName, ".fetchMain"));
+        if (!fetchMain.ok || !fetchMain.content) {
+            AppLogger.warn(actionName, 'Could not fetch accelerator website, skipping.', { website: accWebsite, statusCode: fetchMain.statusCode });
+            return "continue";
+        }
+        // Find portfolio/startups/alumni links.
+        var portfolioLinksAll = findStartupListLinks(accWebsite, fetchMain.content, "".concat(actionName, ".findStartupListLinks"));
+        if (!portfolioLinksAll || portfolioLinksAll.length === 0) {
+            acceleratorsNoPortfolio++;
+            AppLogger.info(actionName, 'No portfolio page found, skipping.', { website: accWebsite });
+            return "continue";
+        }
+        var portfolioLinks = portfolioLinksAll.slice(0, maxPagePerAcc);
+        // Dedup startups for this accelerator by normalized website.
+        var startupsForThisAccel = new Map();
+        for (var j = 0; j < portfolioLinks.length; j++) {
+            if (startupsForThisAccel.size >= maxStartupsPerAcc) {
+                break;
+            }
+            var portfolioUrlRaw = portfolioLinks[j];
+            var portfolioUrl = normalizeUrl(portfolioUrlRaw);
+            if (!portfolioUrl) {
+                continue;
+            }
+            var fetchPortfolio = fetchHtml(portfolioUrl, undefined, "".concat(actionName, ".fetchPortfolio"));
+            if (!fetchPortfolio.ok || !fetchPortfolio.content) {
+                AppLogger.warn(actionName, 'Could not fetch portfolio/startups page, skipping link.', { accelerator: accWebsite, portfolioUrl: portfolioUrl, statusCode: fetchPortfolio.statusCode });
+                continue;
+            }
+            var inferred = inferStartupsFromPortfolioPage(portfolioUrl, fetchPortfolio.content, accelerator, "".concat(actionName, ".infer"));
+            if (!inferred || inferred.length === 0) {
+                continue;
+            }
+            inferred.forEach(function (st) {
+                if (startupsForThisAccel.size >= maxStartupsPerAcc) {
+                    return;
+                }
+                var stWebNorm = normalizeUrl(st.website);
+                if (!stWebNorm) {
+                    return;
+                }
+                // Global dedup vs existing startups and this run's new startups.
+                if (existingStartupWebsites.has(stWebNorm)) {
+                    return;
+                }
+                if (newStartupWebsites.has(stWebNorm)) {
+                    return;
+                }
+                var normalizedStartup = {
+                    website: stWebNorm,
+                    name: (st.name || stWebNorm).trim(),
+                    country: (st.country || 'Unknown').trim(),
+                    accelerator: accWebsite,
+                    value_proposition: st.value_proposition || '',
+                    category: st.category || '',
+                    last_updated: st.last_updated && st.last_updated.trim() !== '' ? st.last_updated.trim() : new Date().toISOString(),
+                };
+                startupsForThisAccel.set(stWebNorm, normalizedStartup);
+            });
+        }
+        var startupsArray = Array.from(startupsForThisAccel.values());
+        if (startupsArray.length > 0) {
+            startupsDiscovered += startupsArray.length;
+        }
+        startupsArray.forEach(function (s) {
+            if (newStartups.length < maxNewStartups && !newStartupWebsites.has(s.website)) {
+                newStartups.push(s);
+                newStartupWebsites.add(s.website);
+                existingStartupWebsites.add(s.website);
+            }
+        });
+    };
+    // Process up to batchAccels accelerators, starting from `cursor` and wrapping around.
+    for (var i = 0; i < batch_size && acceleratorsScanned < totalAcc && newStartups.length < maxNewStartups; i++) {
+        _loop_1(i);
+    }
+    // If nothing was discovered, optionally use a curated demo fallback list.
+    if (newStartups.length === 0) {
+        var curated = getCuratedDemoStartups(existingStartupWebsites);
+        if (curated.length > 0) {
+            newStartups.push.apply(newStartups, curated);
+            curated.forEach(function (s) {
+                existingStartupWebsites.add(s.website);
+                newStartupWebsites.add(s.website);
+            });
+            startupsDiscovered += curated.length;
+            AppLogger.info(actionName, 'Using curated demo startups fallback', { count: curated.length });
+        }
+    }
+    if (newStartups.length > 0) {
+        StartupRepository.appendMany(newStartups);
+    }
+    // Advance the accelerator cursor by the number of accelerators actually scanned.
+    var nextCursor = (cursor + acceleratorsScanned) % totalAcc;
+    props.setProperty(STARTUP_ACCEL_CURSOR_KEY, String(nextCursor));
+    var result = {
+        acceleratorsTotal: totalAcc,
+        acceleratorsScanned: acceleratorsScanned,
+        acceleratorsNoPortfolio: acceleratorsNoPortfolio,
+        startupsDiscovered: startupsDiscovered,
+        startupsAdded: newStartups.length,
+    };
+    AppLogger.info(actionName, 'Completed startups update from accelerators', result);
     return result;
 }
