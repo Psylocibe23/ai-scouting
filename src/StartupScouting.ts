@@ -531,6 +531,55 @@ function getCuratedDemoStartups(existingWebsites: Set<string>): Startup[] {
       accelerator: 'https://www.techstars.com/accelerators/london',
       category: 'Fintech',
     },
+    {
+      website: 'https://huggingface.co',
+      name: 'Hugging Face',
+      country: 'France',
+      accelerator: 'https://stationf.co',
+      category: 'AI / ML platform',
+    },
+    {
+      website: 'https://pasqal.com',
+      name: 'Pasqal',
+      country: 'France',
+      accelerator: 'https://stationf.co',
+      category: 'Quantum computing',
+    },
+    {
+      website: 'https://sonio.ai',
+      name: 'Sonio',
+      country: 'France',
+      accelerator: 'https://stationf.co',
+      category: 'HealthTech',
+    },
+    {
+      website: 'https://woodoo.com',
+      name: 'Woodoo',
+      country: 'France',
+      accelerator: 'https://stationf.co',
+      category: 'ClimateTech / materials',
+    },
+    {
+      website: 'https://genomines.com',
+      name: 'Genomines',
+      country: 'France',
+      accelerator: 'https://stationf.co',
+      category: 'ClimateTech / synthetic biology',
+    },
+    {
+      website: 'https://sekoia.io',
+      name: 'Sekoia.io',
+      country: 'France',
+      accelerator: 'https://stationf.co',
+      category: 'Cybersecurity',
+    },
+    {
+      website: 'https://uipath.com',
+      name: 'UiPath',
+      country: 'Romania',
+      accelerator: 'https://stationf.co',
+      category: 'RPA / automation',
+    },
   ];
 
   const normalizedExisting = new Set<string>();
