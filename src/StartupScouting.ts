@@ -681,6 +681,13 @@ function updateStartupsFromAccelerators(batch_size: number = 3, maxStartupsPerAc
             return;
           }
 
+          // Quick health check: skip if startup website returns HTTP ≥ 400.
+          const health = fetchHtml(stWebNorm, undefined, `${actionName}.healthCheck`);
+          if (!health.ok || (typeof health.statusCode === 'number' && health.statusCode >= 400)) {
+            AppLogger.warn(actionName, 'Startup website failed health check, skipping.', { accelerator: accWebsite, startupWebsite: stWebNorm, statusCode: health.statusCode,});
+            return;
+          }
+
 
           // Global dedup vs existing startups and this run's new startups.
           if (existingStartupWebsites.has(stWebNorm)) {
