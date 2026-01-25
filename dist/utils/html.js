@@ -307,6 +307,56 @@ function classifyAuxLinks(links) {
     return result;
 }
 /**
+ * Heuristic detector for 'portfolio/startups/alumni' pages inside accelerator websites.
+ */
+function findStartupListLinks(accelWebsite, html, actionName) {
+    if (actionName === void 0) { actionName = 'findStartupListLinks'; }
+    var results = [];
+    var seen = new Set();
+    if (!html)
+        return results;
+    try {
+        var $_4 = Cheerio.load(html);
+        var anchors = $_4('a[href]');
+        var KEYWORDS_1 = /(portfolio|our startups|startups|start-up|alumni|our companies|portfolio companies|cohort|batch)/i;
+        var NEGATIVE_1 = /(login|log in|sign in|sign up|apply|apply now|contact|careers|jobs|blog|events|faq|news)/i;
+        anchors.each(function (_, el) {
+            var hrefAttr = ($_4(el).attr('href') || '').trim();
+            if (!hrefAttr)
+                return;
+            var absoluteHref = resolveUrl(accelWebsite, hrefAttr);
+            if (!absoluteHref)
+                return;
+            if (!isInternalLink(accelWebsite, absoluteHref))
+                return;
+            var text = normalizeTextSpaces($_4(el).text() || '');
+            var label = (text + ' ' + hrefAttr).toLowerCase();
+            // Must contain a positive keyword.
+            if (!KEYWORDS_1.test(label))
+                return;
+            if (NEGATIVE_1.test(label))
+                return;
+            if (!seen.has(absoluteHref)) {
+                seen.add(absoluteHref);
+                results.push(absoluteHref);
+            }
+        });
+    }
+    catch (e) {
+        AppLogger.error(actionName, 'Cheerio error in findStartupListLinks', e);
+    }
+    // For demo robustness cap to a max number of startups links.
+    var MAX_PORTFOLIO_LINKS = 10;
+    var trimmed = results.slice(0, MAX_PORTFOLIO_LINKS);
+    if (trimmed.length === 0) {
+        AppLogger.info(actionName, 'No portfolio/startups/alumni links detected', { base: accelWebsite });
+    }
+    else {
+        AppLogger.info(actionName, 'Detected startup list links', { base: accelWebsite, links: trimmed });
+    }
+    return trimmed;
+}
+/**
  * Orchestrator that builds a rich, LLM-ready context from base pages:
  * - extracts title, description, h1, all h2, all h3, footer text from main page
  * - finds footer links and classify them (policies, cookies, about)

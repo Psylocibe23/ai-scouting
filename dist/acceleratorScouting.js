@@ -422,6 +422,12 @@ function discoverAcceleratorsFromSerpApi(maxResults) {
             var websiteNorm = normalizeUrl(link);
             var pathLike = link.toLowerCase();
             var textForType = (title + ' ' + snippet).toLowerCase();
+            // Skip EU-Startups style media/article pages (year in the path + media domain).
+            var path = link.replace(/^https?:\/\/[^/]+/i, '').toLowerCase();
+            if (/\b20\d{2}\b/.test(path) && /eu-startups\.com/.test(link.toLowerCase())) {
+                AppLogger.info(action, 'Skipping media/article domain result', { link: link, title: title });
+                return;
+            }
             // Skip obvious "best/top/list of accelerators" articles.
             if (/best .*accelerator/.test(textForType) ||
                 /top .*accelerator/.test(textForType) ||

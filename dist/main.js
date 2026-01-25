@@ -29,8 +29,22 @@ function runUpdateStartups() {
     SpreadSheet.toast("runUpdateStartups called correctly.");
 }
 function runGenerateValueProps() {
-    var SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("runGenerateValueProps called correctly.");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    ss.toast('Generating value propositions for startups with missing text...');
+    try {
+        var BATCH_SIZE = 5; // or 3 for demo safety
+        var result = generateMissinValueProps(BATCH_SIZE);
+        var msg = "Value propositions generation completed. " +
+            "Processed: ".concat(result.processed, ", ") +
+            "updated: ".concat(result.updated, ", ") +
+            "skipped (no website): ".concat(result.skippedNoWebsite, ", ") +
+            "skipped (errors/LLM): ".concat(result.skippedError, ".");
+        ss.toast(msg);
+    }
+    catch (e) {
+        AppLogger.error('runGenerateValueProps', 'Unexpected error', e);
+        ss.toast('Error during value proposition generation, check logs.');
+    }
 }
 function runExportCsv() {
     var SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
