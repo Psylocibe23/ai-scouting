@@ -8,6 +8,17 @@ function onOpen() {
     .addToUi();
 }
 
+
+/**
+ * runScoutingAccelerators:
+ * - Calls scoutAcceleratorsSmart(...) which:
+ *   - Queries SerpAPI for European accelerators
+ *   - Fetches and parses HTML to validate them
+ *   - Uses an LLM (Groq) to extract name/country when needed
+ *   - Falls back to a curated list for demo robustness
+ * - Writes new accelerators to the "accelerators" sheet
+ * - Keeps the process idempotent by using website as primary key.
+ */
 function runScoutingAccelerators() {
     const SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
     SpreadSheet.toast('Running smart accelerator scouting (SerpAPI + HTML fetching and parsing + LLM + Fallback)...');
@@ -28,6 +39,18 @@ function runScoutingAccelerators() {
     }
 }
 
+
+/**
+ * runUpdateStartups:
+ * - Reads accelerators from the "accelerators" sheet
+ * - For a small batch of accelerators (cursor-based pagination):
+ *   - Fetches the main website
+ *   - Heuristically finds portfolio/alumni/startups pages
+ *   - Uses an LLM to extract startups (name, website, country)
+ *   - De-duplicates using website as primary key
+ * - Appends new startups to the "startups" sheet
+ * - If nothing is found, falls back to a small curated list.
+ */
 function runUpdateStartups() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   ss.toast('Updating startups from accelerator websites (portfolio/alumni/batch pages)...');
@@ -58,6 +81,17 @@ function runUpdateStartups() {
 }
 
 
+/**
+ * runGenerateValueProps:
+ * - Scans the "startups" sheet
+ * - For startups with an empty value_proposition:
+ *   - Fetches the startup website
+ *   - Builds a compact textual context (title, meta, H1/H2, etc.)
+ *   - Calls the LLM (Groq) with a JSON-only, few-shot prompt
+ *   - Maps the JSON to a sentence:
+ *       "Startup X helps Target Y do What W so that Benefit Z."
+ * - Updates the sheet in batch, with logging and error handling.
+ */
 function runGenerateValueProps() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   ss.toast('Generating value propositions for startups with missing text...');
