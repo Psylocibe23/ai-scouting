@@ -689,19 +689,29 @@ function updateStartupsFromAccelerators(batch_size: number = 2, maxStartupsPerAc
             return;
           }
 
-          // Quick health check: skip if startup website returns HTTP ≥ 400.
-          const health = fetchHtml(stWebNorm, undefined, `${actionName}.healthCheck`);
-          if (!health.ok || (typeof health.statusCode === 'number' && health.statusCode >= 400)) {
-            AppLogger.warn(actionName, 'Startup website failed health check, skipping.', { accelerator: accWebsite, startupWebsite: stWebNorm, statusCode: health.statusCode,});
-            return;
-          }
-
-
           // Global dedup vs existing startups and this run's new startups.
           if (existingStartupWebsites.has(stWebNorm)) {
             return;
           }
           if (newStartupWebsites.has(stWebNorm)) {
+            return;
+          }
+
+          // Single HTTP + parked-domain health check
+          const health = fetchHtml(stWebNorm, undefined, `${actionName}.healthCheck`);
+          if (!health.ok || (typeof health.statusCode === 'number' && health.statusCode >= 400)) {
+            AppLogger.warn(`${actionName}.healthCheck`,
+              'Startup website unreachable or error, skipping startup.',
+              { website: stWebNorm, statusCode: health.statusCode }
+            );
+            return;
+          }
+
+          if (health.content && isParkedDomainPage(health.content)) {
+            AppLogger.info(`${actionName}.healthCheck`,
+              'Detected parked / for-sale domain page, skipping startup at discovery time.',
+              { website: stWebNorm }
+            );
             return;
           }
 
@@ -724,28 +734,33 @@ function updateStartupsFromAccelerators(batch_size: number = 2, maxStartupsPerAc
         startupsDiscovered += startupsArray.length;
       }
 
-        startupsArray.forEach((s) => {
-
-          if (newStartups.length < maxNewStartups && !newStartupWebsites.has(s.website)) {
-            newStartups.push(s);
-            newStartupWebsites.add(s.website);
-            existingStartupWebsites.add(s.website);
-
-          }
-        });
+      startupsArray.forEach((s) => {
+        if (newStartups.length < maxNewStartups && !newStartupWebsites.has(s.website)) {
+          newStartups.push(s);
+          newStartupWebsites.add(s.website);
+          existingStartupWebsites.add(s.website);
+        }
+      });
     }
 
-    // If nothing was discovered, optionally use a curated demo fallback list.
-    if (newStartups.length === 0) {
+    // If less than 3 startups were discovered, use a curated demo fallback list.
+    const MIN_NEW_STARTUPS_PER_RUN = 3;
+    const targetCount = Math.min(MIN_NEW_STARTUPS_PER_RUN, maxNewStartups);
+
+    if (newStartups.length < targetCount){
       const curated = getCuratedDemoStartups(existingStartupWebsites);
-      if (curated.length > 0)  {
-        newStartups.push(...curated);
-        curated.forEach((s) => {
+      if (curated.length > 0) {
+        const remainingSlots = targetCount - newStartups.length;
+        const curatedToAdd = curated.slice(0, remainingSlots);
+
+        curatedToAdd.forEach((s) => {
+          newStartups.push(s);
           existingStartupWebsites.add(s.website);
           newStartupWebsites.add(s.website);
         });
-        startupsDiscovered += curated.length;
-        AppLogger.info(actionName, 'Using curated demo startups fallback', {count: curated.length});
+
+        startupsDiscovered += curatedToAdd.length;
+        AppLogger.info(actionName, 'Using curated demo startups fallback');
       }
     }
 
