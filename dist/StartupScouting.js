@@ -567,17 +567,21 @@ function updateStartupsFromAccelerators(batch_size, maxStartupsPerAcc, maxPagePe
                 if (!stWebNorm) {
                     return;
                 }
-                // Quick health check: skip if startup website returns HTTP ≥ 400.
-                var health = fetchHtml(stWebNorm, undefined, "".concat(actionName, ".healthCheck"));
-                if (!health.ok || (typeof health.statusCode === 'number' && health.statusCode >= 400)) {
-                    AppLogger.warn(actionName, 'Startup website failed health check, skipping.', { accelerator: accWebsite, startupWebsite: stWebNorm, statusCode: health.statusCode, });
-                    return;
-                }
                 // Global dedup vs existing startups and this run's new startups.
                 if (existingStartupWebsites.has(stWebNorm)) {
                     return;
                 }
                 if (newStartupWebsites.has(stWebNorm)) {
+                    return;
+                }
+                // Single HTTP + parked-domain health check
+                var health = fetchHtml(stWebNorm, undefined, "".concat(actionName, ".healthCheck"));
+                if (!health.ok || (typeof health.statusCode === 'number' && health.statusCode >= 400)) {
+                    AppLogger.warn("".concat(actionName, ".healthCheck"), 'Startup website unreachable or error, skipping startup.', { website: stWebNorm, statusCode: health.statusCode });
+                    return;
+                }
+                if (health.content && isParkedDomainPage(health.content)) {
+                    AppLogger.info("".concat(actionName, ".healthCheck"), 'Detected parked / for-sale domain page, skipping startup at discovery time.', { website: stWebNorm });
                     return;
                 }
                 var normalizedStartup = {
@@ -608,17 +612,21 @@ function updateStartupsFromAccelerators(batch_size, maxStartupsPerAcc, maxPagePe
     for (var i = 0; i < batch_size && acceleratorsScanned < totalAcc && newStartups.length < maxNewStartups; i++) {
         _loop_1(i);
     }
-    // If nothing was discovered, optionally use a curated demo fallback list.
-    if (newStartups.length === 0) {
+    // If less than 3 startups were discovered, use a curated demo fallback list.
+    var MIN_NEW_STARTUPS_PER_RUN = 3;
+    var targetCount = Math.min(MIN_NEW_STARTUPS_PER_RUN, maxNewStartups);
+    if (newStartups.length < targetCount) {
         var curated = getCuratedDemoStartups(existingStartupWebsites);
         if (curated.length > 0) {
-            newStartups.push.apply(newStartups, curated);
-            curated.forEach(function (s) {
+            var remainingSlots = targetCount - newStartups.length;
+            var curatedToAdd = curated.slice(0, remainingSlots);
+            curatedToAdd.forEach(function (s) {
+                newStartups.push(s);
                 existingStartupWebsites.add(s.website);
                 newStartupWebsites.add(s.website);
             });
-            startupsDiscovered += curated.length;
-            AppLogger.info(actionName, 'Using curated demo startups fallback', { count: curated.length });
+            startupsDiscovered += curatedToAdd.length;
+            AppLogger.info(actionName, 'Using curated demo startups fallback');
         }
     }
     if (newStartups.length > 0) {
