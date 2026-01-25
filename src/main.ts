@@ -34,8 +34,25 @@ function runUpdateStartups() {
 }
 
 function runGenerateValueProps() {
-    const SpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    SpreadSheet.toast("runGenerateValueProps called correctly.")
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  ss.toast('Generating value propositions for startups with missing text...');
+
+  try {
+    const BATCH_SIZE = 5; // or 3 for demo safety
+    const result = generateMissinValueProps(BATCH_SIZE);
+
+    const msg =
+      `Value propositions generation completed. ` +
+      `Processed: ${result.processed}, ` +
+      `updated: ${result.updated}, ` +
+      `skipped (no website): ${result.skippedNoWebsite}, ` +
+      `skipped (errors/LLM): ${result.skippedError}.`;
+
+    ss.toast(msg);
+  } catch (e) {
+    AppLogger.error('runGenerateValueProps', 'Unexpected error', e);
+    ss.toast('Error during value proposition generation, check logs.');
+  }
 }
 
 function runExportCsv() {

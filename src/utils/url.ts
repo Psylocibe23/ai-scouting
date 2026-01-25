@@ -92,6 +92,6 @@ function isInternalLink(baseUrl: string, candidateUrl: string): boolean {
 
   if (candidateHost === baseHost) return true;
   // Accept subdomains: e.g. demo.seedcamp.com for seedcamp.com.
-  if (candHost.endsWith('.' + baseHost)) return true;
+  if (candidateHost.endsWith('.' + baseHost)) return true;
   return false;
 }

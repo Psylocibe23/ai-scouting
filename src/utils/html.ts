@@ -354,6 +354,60 @@ function classifyAuxLinks(links: InfoLink[]): AuxPages {
 }
 
 
+/**
+ * Heuristic detector for 'portfolio/startups/alumni' pages inside accelerator websites.
+ */
+function findStartupListLinks(accelWebsite: string, html: string, actionName: string = 'findStartupListLinks'): string[] {
+    const results: string[] = [];
+    const seen = new Set<string>();
+    if (!html) return results;
+
+    try {
+        const $ = Cheerio.load(html);
+
+        const anchors = $('a[href]');
+        const KEYWORDS = /(portfolio|our startups|startups|start-up|alumni|our companies|portfolio companies|cohort|batch)/i;
+        const NEGATIVE = /(login|log in|sign in|sign up|apply|apply now|contact|careers|jobs|blog|events|faq|news)/i;
+
+        anchors.each((_, el) => {
+            const hrefAttr = ($(el).attr('href') || '').trim();
+            if (!hrefAttr) return;
+
+            const absoluteHref = resolveUrl(accelWebsite, hrefAttr);
+            if (!absoluteHref) return;
+
+            if (!isInternalLink(accelWebsite, absoluteHref)) return;
+
+            const text = normalizeTextSpaces($(el).text() || '');
+            const label = (text + ' ' + hrefAttr).toLowerCase();
+            // Must contain a positive keyword.
+            if (!KEYWORDS.test(label)) return;
+            if (NEGATIVE.test(label)) return;
+
+            if (!seen.has(absoluteHref)) {
+                seen.add(absoluteHref);
+                results.push(absoluteHref);
+            }
+        });
+    } catch (e) {
+        AppLogger.error(actionName, 'Cheerio error in findStartupListLinks', e);
+    }
+
+    // For demo robustness cap to a max number of startups links.
+    const MAX_PORTFOLIO_LINKS = 10;
+    const trimmed = results.slice(0, MAX_PORTFOLIO_LINKS);
+
+    if (trimmed.length === 0) {
+        AppLogger.info(actionName, 'No portfolio/startups/alumni links detected', {base: accelWebsite});
+    } else {
+        AppLogger.info(actionName, 'Detected startup list links', {base: accelWebsite, links: trimmed});
+    }
+
+    return trimmed;
+
+}
+
+
 interface PageExtract {
     url: string;
     title?: string;
