@@ -178,3 +178,22 @@ function CallLlmJson(systemPrompt: string, userPrompt: string, actionName: strin
         return null;
     }
 }
+
+/**
+ * Heuristic for detecting parked / "domain for sale" pages.
+ * Look for typical text snippets used by domain marketplaces.
+ */
+function isParkedDomainPage(html: string): boolean {
+  const lower = html.toLowerCase();
+
+  const patterns = [
+    'this domain is for sale',
+    'buy this domain',
+    'is for sale at',
+    'hugedomains',
+    'sedo.com',
+    'parkingcrew',
+  ];
+
+  return patterns.some((p) => lower.indexOf(p) !== -1);
+}

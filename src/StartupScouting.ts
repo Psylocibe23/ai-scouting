@@ -345,6 +345,14 @@ function generateValueProp(startup: Startup, actionName: string = 'generateValue
         return null;
     }
 
+    const html = fetchRes.content || '';
+
+    // Parked-domain heuristic: skip domain marketplaces / "for sale" pages.
+    if (isParkedDomainPage(html)) {
+      AppLogger.info(actionName, 'Detected parked / for-sale domain page, skipping value-prop.', { website: websiteNorm});
+      return null;
+    }
+
     // Build structured context from main/about/policy/cookies pages
     const pageInfo = buildPageInfo(websiteNorm, fetchRes.content, actionName + '.pageInfo');
     const context = pageInfo.combinedText || '';
