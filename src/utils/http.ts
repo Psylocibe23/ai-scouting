@@ -13,11 +13,7 @@ interface FetchHtmlResult {
  * - Logs timing and status via AppLogger
  * - Returns a structured FetchHtmlResult 
  */
-function fetchHtml(
-    url: string,
-    requestOptions?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions,
-    actionName: string = 'fetchHtml'
-): FetchHtmlResult {
+function fetchHtml(url: string, requestOptions?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions, actionName: string = 'fetchHtml'): FetchHtmlResult {
     // Trim the URL and handles empty input
     const rawUrl = url ? url.trim(): '';
     
