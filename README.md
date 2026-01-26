@@ -444,6 +444,6 @@ In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore*
   <img 
     src="docs/guide_images/guida - esecuzioni.png" 
     alt="Menu esecuzioni per controllo Logs" 
-    width="700"
+    width="400"
   >
 </p>
