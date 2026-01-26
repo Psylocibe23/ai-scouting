@@ -164,7 +164,7 @@ Da questo momento tutte le chiamate a SerpAPI e Groq useranno le chiavi personal
 
 #### B. Proprietà da inizializzare quando si crea una copia del foglio
 
-Quando si crea una **copia del Google Sheet** (File &rarr; Crea una copia), il progetto Apps Script collegato alla copia potrebbe non avere tutte le Script Properties impostate.
+Quando si crea una **copia del Google Sheet** (File &rarr; Crea una copia), il progetto Apps Script collegato alla copia non averà tutte le Script Properties impostate.
 
 Nel progetto Apps Script della copia è opportuno verificare, nella stessa sezione **Script properties**, la presenza delle seguenti chiavi di configurazione:
 
@@ -198,3 +198,48 @@ Alla prima esecuzione di una funzione dal menu viene richiesto di autorizzare lo
 Durante questo passaggio è importante verificare che tra i permessi concessi allo script ci sia anche la voce che consente di **visualizzare e modificare i fogli di calcolo Google** associati all’account (ad esempio “Visualizzare e gestire i tuoi fogli di calcolo Google”). Senza questo permesso lo script non può leggere/scrivere nelle schede `accelerators` e `startups`.
 
 Dopo questa procedura lo script risulta autorizzato e le esecuzioni successive dei comandi dal menu non richiederanno ulteriori conferme (a meno di modifiche significative al progetto o revoca dei permessi).
+
+<details>
+<summary><strong>Guida dettagliata (con screenshot)</strong></summary>
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - apri ai-scouting-paprika.png" 
+    alt="Menu personalizzato della demo" 
+    width="700"
+  >
+</p>
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - permessi prima esecuzione.png" 
+    alt="Autorizzazione prima esecuzione" 
+    width="700"
+  >
+</p>
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - avanzate.png" 
+    alt="Autorizzazione prima esecuzione - avanzate" 
+    width="700"
+  >
+</p>
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - apri ai-scouting-paprika.png" 
+    alt="Autorizzazione prima esecuzione - apri ai-scouting-paprika" 
+    width="700"
+  >
+</p>
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - permessi.png" 
+    alt="Autorizzazione prima esecuzione - permessi" 
+    width="700"
+  >
+</p>
+
+</details>
