@@ -40,10 +40,12 @@ Tutte le funzionalità principali sono accessibili dal menu personalizzato sul G
 
 Struttura del README:
 
-- guida al setup e alla configurazione;
-- descrizione dell’architettura ad alto livello del prototipo;
-- istruzioni per eseguire i comandi del menu;
-- descrizione delle principali **scelte progettuali**, dei **trade-off** e dei **limiti del prototipo** con possibili miglioramenti futuri.
+- [Guida al setup e alla configurazione](#2-setup-e-configurazione)
+- [Descrizione dell’architettura ad alto livello del prototipo](#3-architettura-ad-alto-livello-e-funzioni-del-menu)
+- [Istruzioni per eseguire i comandi del menu](#3-architettura-ad-alto-livello-e-funzioni-del-menu)
+- [Scelte progettuali, trade-off e limiti del prototipo con possibili miglioramenti futuri](#4-scelte-progettuali-e-trade-off)  
+- [Limitazioni e possibili miglioramenti](#5-limitazioni-e-possibili-miglioramenti)
+
 
 ---
 
@@ -125,7 +127,27 @@ Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test inten
 <details>
 <summary><strong>Guida dettagliata (opzionale) per usare API key proprie e inizializzare le Script Properties</strong></summary>
 
-#### A. Sostituire le API key con chiavi proprie
+#### A. Creazione API key
+
+- **SerpAPI**
+  1. Aprire https://serpapi.com e registrare un account gratuito.
+  2. Una volta loggati, aprire la pagina **Dashboard / Account** e copiare la voce **API Key**.
+
+- **Groq**
+  1. Aprire https://console.groq.com e accedere con il proprio account.
+  2. Dal menu **API Keys**, creare una nuova chiave e copiarla.
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - groq api.pngg" 
+    alt="Creazione Groq API key" 
+    width="700"
+  >
+</p>
+
+Le chiavi ottenute possono poi essere incollate nelle Script Properties (`SERPAPI_API_KEY` e `GROQ_API_KEY`).
+
+#### B. Sostituire le API key con chiavi proprie
 
 1. Nell’editor di Apps Script, cliccare sull’icona **ingranaggio** (in alto a sinistra) oppure andare su  
    **Project Settings / Impostazioni progetto**.
@@ -162,18 +184,18 @@ Da questo momento tutte le chiamate a SerpAPI e Groq useranno le chiavi personal
 
 ---
 
-#### B. Proprietà da inizializzare quando si crea una copia del foglio
+#### C. Proprietà da inizializzare quando si crea una copia del foglio
 
-Quando si crea una **copia del Google Sheet** (File &rarr; Crea una copia), il progetto Apps Script collegato alla copia non averà tutte le Script Properties impostate.
+Quando si crea una **copia del Google Sheet** (File &rarr; Crea una copia), il progetto Apps Script collegato alla copia potrebbe non avere tutte le Script Properties impostate.
 
 Nel progetto Apps Script della copia è opportuno verificare, nella stessa sezione **Script properties**, la presenza delle seguenti chiavi di configurazione:
 
 - `LLM_MODEL` &rarr; `llama-3.1-8b-instant`  
 - `LLM_PROVIDER` &rarr; `groq`  
-- `SERPAI_USAGE_MONTH` &rarr; `2026-01`  
+- `SERPAPI_USAGE_MONTH` &rarr; `2026-01`  
 - `SERPAPI_USAGE_MONTH` &rarr; `2026-01`  
 
-I valori `SERPAI_USAGE_MONTH` e `SERPAPI_USAGE_MONTH` rappresentano il mese di utilizzo corrente in formato `YYYY-MM`.  
+I valori `SERPAPI_USAGE_MONTH` e `SERPAPI_USAGE_MONTH` rappresentano il mese di utilizzo corrente in formato `YYYY-MM`.  
 Il codice aggiorna e utilizza questi campi per tracciare l’uso mensile delle API; se non sono presenti, è consigliabile inizializzarli con un mese valido (ad esempio il mese corrente).
 
 Tutte le altre proprietà di tracking (come indici, cursori, contatori) vengono create automaticamente dal codice alla prima esecuzione e non richiedono interventi manuali.
@@ -461,7 +483,7 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
 - **Colonne extra opzionali**
    - <ins>trade-off</ins>: fogli pronti per estensioni future del prototipo, accettando alcune colonne vuote nella demo.
 
-- **LLM API per estrazione metadat/contesto**
+- **LLM API per estrazione metadati/contesto**
    - <ins>trade-off</ins>: meno costo e meno allucinazioni, ma richiede prompt più strutturati e logica leggermente più complessa.
 
 - **Errori non bloccati ma flag nei Logs**
@@ -470,9 +492,8 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
 - **Euristiche + LLM invece di scraping avanzato**
   - <ins>trade-off</ins>: codice più compatto e interamente sviluppato in Apps Script, ma con risultati meno robusti rispetto a uno sviluppo custom (es, in node.js + puppeteer).
 
-- **Tracking semplice gestito in Service Properties**
+- **Tracking semplice gestito in Script Properties**
    - <ins>trade-off</ins>: tracking semplice e di semplice gestione, ma richiede attenzione se si lavora su copie del foglio e andrebbe esteso per uno scaling reale dell’applicazione.
----
 
 ---
 
