@@ -199,12 +199,14 @@ Durante questo passaggio è importante verificare che tra i permessi concessi al
 
 Dopo questa procedura lo script risulta autorizzato e le esecuzioni successive dei comandi dal menu non richiederanno ulteriori conferme (a meno di modifiche significative al progetto o revoca dei permessi).
 
+---
+
 <details>
 <summary><strong>Guida dettagliata (con screenshot)</strong></summary>
 
 <p align="center">
   <img 
-    src="docs/guide_images/guida - apri ai-scouting-paprika.png" 
+    src="docs/guide_images/guida - startup scouting ai.png" 
     alt="Menu personalizzato della demo" 
     width="700"
   >
@@ -243,3 +245,6 @@ Dopo questa procedura lo script risulta autorizzato e le esecuzioni successive d
 </p>
 
 </details>
+
+---
+
