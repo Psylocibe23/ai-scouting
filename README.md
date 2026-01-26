@@ -474,7 +474,7 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
   <img 
     src="docs/guide_images/guida - logs.png" 
     alt="Logs output" 
-    width="400"
+    width="600"
   >
 </p>
 
