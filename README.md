@@ -422,23 +422,23 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
 
 --- 
 
-### Nota su gestione errori e tempi di esecuzione
+> ### Nota su gestione errori e tempi di esecuzione
 
-Il codice è organizzato in modo da **gestire gli errori senza interrompere l’intero flusso**.  
-In caso di problemi (sito non raggiungibile, HTTP 4xx/5xx, dominio parcheggiato, errore LLM, ecc.) la singola voce viene **saltata**, viene scritto un messaggio nei log e l’esecuzione prosegue con gli altri elementi.
+> Il codice è organizzato in modo da **gestire gli errori senza interrompere l’intero flusso**.  
+> In caso di problemi (sito non raggiungibile, HTTP 4xx/5xx, dominio parcheggiato, errore LLM, ecc.) la singola voce viene **saltata**, viene scritto un messaggio nei log e l’esecuzione prosegue con gli altri elementi.
 
-I log sono visibili dall’editor di Apps Script, nella sezione **Esecuzioni**:
+> I log sono visibili dall’editor di Apps Script, nella sezione **Esecuzioni**:
 
-- ogni run mostra lo stato (completata / con errori / interrotta);
-- aprendo il dettaglio di una esecuzione si possono leggere i messaggi generati da `AppLogger` (INFO, WARN, ERROR) e seguire passo per passo ciò che è successo.
+> - ogni run mostra lo stato (completata / con errori / interrotta);
+> - aprendo il dettaglio di una esecuzione si possono leggere i messaggi generati da `AppLogger` (INFO, WARN, ERROR) e seguire passo per passo ciò che è successo.
 
-Dato che il prototipo combina:
+> Dato che il prototipo combina:
 
-- più layer euristici (ricerca link portfolio, normalizzazione URL, health check, rilevamento domini parcheggiati) e  
-- chiamate a un LLM esterno,
+> - più layer euristici (ricerca link portfolio, normalizzazione URL, health check, rilevamento domini parcheggiati) e  
+> - chiamate a un LLM esterno,
 
-i **tempi di esecuzione possono variare** in base alla complessità delle strutture HTML dei siti web e alla latenza delle API.  
-In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore**: se si desidera capire meglio cosa sta succedendo durante un run, è sufficiente consultare i log nella sezione **Esecuzioni** di Apps Script.
+> i **tempi di esecuzione possono variare** in base alla complessità delle strutture HTML dei siti web e alla latenza delle API.  
+> In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore**: se si desidera capire meglio cosa sta succedendo durante un run, è sufficiente consultare i log nella sezione **Esecuzioni** di Apps Script.
 
 <p align="center">
   <img 
@@ -468,9 +468,37 @@ In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore*
    - <ins>trade-off</ins>: il flusso non si ferma, ma la diagnosi richiede ispezione manuale dei logs in "esecuzioni".
 
 - **Euristiche + LLM invece di scraping avanzato**
-  <ins>trade-off</ins>: codice più compatto e interamente sviluppato in Apps Script, ma con risultati meno robusti rispetto a uno sviluppo custom (es, in node.js + puppeteer).
+  - <ins>trade-off</ins>: codice più compatto e interamente sviluppato in Apps Script, ma con risultati meno robusti rispetto a uno sviluppo custom (es, in node.js + puppeteer).
 
 - **Tracking semplice gestito in Service Properties**
    - <ins>trade-off</ins>: tracking semplice e di semplice gestione, ma richiede attenzione se si lavora su copie del foglio e andrebbe esteso per uno scaling reale dell’applicazione.
 ---
+
+---
+
+## 5. Limitazioni e possibili miglioramenti
+
+- **Limitazioni [sviluppo in Apps Script]**  
+  - Limitazioni: ambiente sincrono (niente `async/await`), impossibilità di attendere il rendering JS lato client, modulo unico senza `import/export` nativi, librerie esterne limitate, scraping solo via `UrlFetchApp` su HTML statico.  
+  - <ins>Miglioramenti</ins>: affiancare un backend dedicato (es. Node.js + Puppeteer/Playwright o Python + Requests + BeautifulSoup) esposto via API a Apps Script, mantenendo Google Sheets come interfaccia.
+
+- **Limitazioni [acquisizione dati / scraping]**  
+  - Limitazioni: euristiche generiche per trovare pagine portfolio/startups, HTML spesso poco strutturato, possibili startup mancanti o campi incompleti su siti molto custom o complessi.  
+  - <ins>Miglioramenti</ins>: scraper dedicati per singoli acceleratori strategici, uso di headless browser per contenuti dinamici, parsing più tipizzato per aumentare recall e qualità dei dati.
+
+- **Limitazioni [LLM e piano free]**  
+  - Limitazioni: limiti di rate e token del piano gratuito, scelta del modello `llama-3.1-8b-instant` ottimizzata per costo/latency ma potenzialmente meno performante di modelli più grandi.  
+  - <ins>Miglioramenti</ins>: passaggio ad API a pagamento (Groq o altri provider), possibilità di usare modelli più capienti, caching dei risultati per ridurre chiamate ripetute.
+
+- **Limitazioni [componenti euristiche]**  
+  - Limitazioni: alcune decisioni (es. parked-domain heuristic, filtri su articoli/directory, mapping di country/focus) sono rule-based e possono introdurre falsi positivi/negativi o campi mancanti.  
+  - <ins>Miglioramenti</ins>: raffinamento iterativo delle regole a partire dai log, aggiunta di piccoli controlli ML dove ha senso e, su dataset ridotti, validazione manuale della qualità dei dati.
+
+- **Limitazioni [policy / aspetti legali]**  
+  - Limitazioni: la demo è pensata per uso interno e non implementa ancora lettura di `robots.txt` né un controllo sistematico delle condizioni d’uso dei siti.  
+  - <ins>Miglioramenti</ins>: introduzione di un layer che legge e rispetta `robots.txt`, limiti sul crawling per sito/domino e revisione legale sulle modalità di raccolta e utilizzo dei dati.
+
+- **Limitazioni [feature di prodotto / business]**  
+  - Limitazioni: il focus è sul popolamento dei fogli e sulle value proposition, senza filtri avanzati (es. per paese/verticale) né moduli di analytics e insight sui dati raccolti.  
+  - <ins>Miglioramenti</ins>: aggiunta di parametri di ricerca (es. paese, industry), script di analisi (Python + pandas / scikit-learn) e integrazione con LLM per generare insight di portafoglio (cluster, gap, priorità di contatto).
 
