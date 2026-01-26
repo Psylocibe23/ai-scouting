@@ -46,6 +46,16 @@ Struttura del README:
 - [Scelte progettuali e trade-off](#4-scelte-progettuali-e-trade-off)  
 - [Limitazioni e possibili miglioramenti](#5-limitazioni-e-possibili-miglioramenti)
 
+### Stack tecnico utilizzato
+
+- **Linguaggio / runtime**: sorgente in TypeScript, compilato in JavaScript per **Google Apps Script**.
+- **Versionamento**: progetto Apps Script versionato con **clasp** e pubblicato su GitHub.
+- **Data layer**: **Google Sheets** con tab `accelerators` e `startups`, accesso incapsulato in repository tipizzati (`AcceleratorRepository`, `StartupRepository`).
+- **HTTP & parsing HTML**: `UrlFetchApp` per il fetch delle pagine e **Cheerio** (bundled in `dist/`) per il parsing HTML lato server.
+- **LLM**: **Groq API** (modello `llama-3.1-8b-instant`), configurato tramite `LLM_MODEL` e `LLM_PROVIDER` in Script Properties.
+- **Search esterna**: **SerpAPI** per la scoperta di acceleratori via risultati Google, con tracking dell’uso tramite Script Properties.
+- **Configurazione & stato**: `PropertiesService` per chiavi, cursori e contatori di utilizzo.
+- **Logging**: logger custom `AppLogger` con livelli `INFO`, `WARN`, `ERROR` per tracciare in modo esplicito il comportamento del prototipo.
 
 ---
 
@@ -141,7 +151,7 @@ Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test inten
   <img 
     src="docs/guide_images/guida - groq api.png" 
     alt="Creazione Groq API key" 
-    width="700"
+    width="800"
   >
 </p>
 
