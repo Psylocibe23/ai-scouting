@@ -134,7 +134,7 @@ Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test inten
   <img 
     src="docs/guide_images/guida - impostazioni progetto.png" 
     alt="Schermata impostazioni progetto Apps Script" 
-    width="500"
+    width="700"
   >
 </p>
 
