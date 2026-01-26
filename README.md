@@ -42,8 +42,8 @@ Struttura del README:
 
 - [Guida al setup e alla configurazione](#2-setup-e-configurazione)
 - [Descrizione dell’architettura ad alto livello del prototipo](#3-architettura-ad-alto-livello-e-funzioni-del-menu)
-- [Istruzioni per eseguire i comandi del menu](###3.1-Scouting-Accelerators)
-- [Scelte progettuali, trade-off e limiti del prototipo con possibili miglioramenti futuri](#4-scelte-progettuali-e-trade-off)  
+- [Istruzioni per eseguire i comandi del menu](#3-architettura-ad-alto-livello-e-funzioni-del-menu)
+- [Scelte progettuali e trade-off](#4-scelte-progettuali-e-trade-off)  
 - [Limitazioni e possibili miglioramenti](#5-limitazioni-e-possibili-miglioramenti)
 
 
