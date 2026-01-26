@@ -116,41 +116,51 @@ Nel progetto Apps Script associato al foglio sono già presenti due proprietà d
 
 con valori validi **per la demo**.
 
-Queste chiavi permettono di eseguire il prototipo senza ulteriore configurazione.  
-Poiché hanno limiti di utilizzo e sono condivise, per test intensivi o per uso prolungato è consigliabile sostituirle con chiavi proprie.
+Questo significa che il prototipo può essere eseguito subito, senza dover creare nuove chiavi.  
+Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test intensivi o per uso prolungato è comunque consigliabile usare API key dedicate.
 
-#### 2.4.2 Sostituzione delle API key
+---
+
+<details>
+<summary><strong>Guida dettagliata (opzionale) per usare API key proprie e inizializzare le Script Properties</strong></summary>
+
+#### A. Sostituire le API key con chiavi proprie
 
 1. Nell’editor di Apps Script, cliccare sull’icona **ingranaggio** (in alto a sinistra) oppure andare su  
    **Project Settings / Impostazioni progetto**.
 2. Scorrere fino alla sezione **Script properties / Proprietà script**.
-3. Dovrebbero essere presenti due proprietà:
+3. Nella tabella delle proprietà dovrebbero comparire:
 
    - `SERPAPI_API_KEY`
    - `GROQ_API_KEY`
 
-4. Sovrascrivere i valori esistenti con nuove chiavi dedicate.
-5. Assicurarsi che i nomi siano esattamente:
-
-   - `SERPAPI_API_KEY` (API key SerpAPI)
-   - `GROQ_API_KEY` (API key Groq)
-
+4. Sostituire i valori esistenti con le proprie chiavi:
+   - `SERPAPI_API_KEY` → API key SerpAPI;
+   - `GROQ_API_KEY` → API key Groq.
+5. Assicurarsi che i **nomi delle proprietà** siano esattamente questi (maiuscole comprese).
 6. Cliccare su **Save / Salva**.
 
-#### 2.4.3 Proprietà obbligatorie per una nuova copia del foglio
+Da questo momento tutte le chiamate a SerpAPI e Groq useranno le chiavi personali.
 
-Quando viene creata una **copia del foglio** per testare la demo, le API key potrebbero non essere le uniche proprietà richieste: alcune variabili di configurazione vengono lette da **Script Properties** fin dal primo run.
+---
 
-Nel progetto Apps Script della **copia** è quindi necessario verificare che esistano (ed eventualmente aggiungere) le seguenti proprietà:
+#### B. Proprietà da inizializzare quando si crea una copia del foglio
+
+Quando si crea una **copia del Google Sheet** (File → Crea una copia), il progetto Apps Script collegato alla copia potrebbe non avere tutte le Script Properties impostate.
+
+Nel progetto Apps Script della copia è opportuno verificare, nella stessa sezione **Script properties**, la presenza delle seguenti chiavi di configurazione:
 
 - `LLM_MODEL` → `llama-3.1-8b-instant`  
 - `LLM_PROVIDER` → `groq`  
 - `SERPAI_USAGE_MONTH` → `2026-01`  
 - `SERPAPI_USAGE_MONTH` → `2026-01`  
 
-I valori per `*_USAGE_MONTH` vengono aggiornati automaticamente dal codice durante l’esecuzione, ma è consigliabile inizializzarli con un valore valido (es. il mese corrente in formato `YYYY-MM`).  
+I valori `SERPAI_USAGE_MONTH` e `SERPAPI_USAGE_MONTH` rappresentano il mese di utilizzo corrente in formato `YYYY-MM`.  
+Il codice aggiorna e utilizza questi campi per tracciare l’uso mensile delle API; se non sono presenti, è consigliabile inizializzarli con un mese valido (ad esempio il mese corrente).
 
-Le altre proprietà di tracking aggiuntive (contatori, indici, ecc.) vengono create direttamente a runtime dal codice e non richiedono configurazione manuale.
+Tutte le altre proprietà di tracking (come indici, cursori, contatori) vengono create automaticamente dal codice alla prima esecuzione e non richiedono interventi manuali.
+
+</details>
 
 ---
 
