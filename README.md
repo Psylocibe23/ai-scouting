@@ -64,7 +64,7 @@ Struttura del README:
 > **Nota importante**  
 > Nel progetto Apps Script collegato al foglio Google sono **già configurate delle API key** per la demo (chiavi personali) sia per SerpAPI sia per Groq.  
 > È quindi possibile usare il prototipo direttamente così com’è, senza creare nuove chiavi.  
-> Se si preferisce usare API key dedicate, la sezione **2.4** spiega come sostituirle.
+> Se si preferisce usare API key dedicate, la sezione **[2.4](#24-configurare-o-sostituire-le-api-key-in-script-properties)** spiega come sostituirle.
 
 ### 2.1 Prerequisiti
 
@@ -93,13 +93,13 @@ Facoltativo (solo se si vogliono usare **API key proprie** invece di quelle già
    - andare su **File &rarr; Crea una copia**;
    - scegliere la cartella del proprio Google Drive;
    - assegnare un nome a piacere (es. `AI Scouting – Paprika (copia personale)`)
-   - **Nota**: se si crea un'altra copia del foglio è necessario impostare le API key (vedere sezione **2.4**).
+   - **Nota**: se si crea un'altra copia del foglio è necessario impostare le API key (vedere sezione **[2.4](#24-configurare-o-sostituire-le-api-key-in-script-properties)**).
 3. Nella copia dovrebbero essere presenti almeno due schede:
    - `accelerators`
    - `startups`  
    entrambe già con le intestazioni corrette nella prima riga.
 
-Non è necessario creare manualmente altri fogli: il codice lavora su questi due tab e, se mancanti, li crea automaticamente.
+> **Nota**: è possibile usare direttamente questo foglio con le API key demo già configurate; la copia personale è necessaria solo se si preferisce lavorare in un proprio workspace o usare chiavi diverse. Non è necessario creare manualmente altri fogli: il codice lavora su questi due tab e, se mancanti, li crea automaticamente.
 
 ---
 
@@ -206,6 +206,8 @@ Nel progetto Apps Script della copia è opportuno verificare, nella stessa sezio
 - `LLM_PROVIDER` &rarr; `groq`  
 - `SERPAPI_USAGE_MONTH` &rarr; `2026-01`  
 - `SERPAPI_USAGE_MONTH` &rarr; `2026-01`  
+- `SERPAPI_API_KEY`
+- `GROQ_API_KEY`
 
 I valori `SERPAPI_USAGE_MONTH` e `SERPAPI_USAGE_MONTH` rappresentano il mese di utilizzo corrente in formato `YYYY-MM`.  
 Il codice aggiorna e utilizza questi campi per tracciare l’uso mensile delle API; se non sono presenti, è consigliabile inizializzarli con un mese valido (ad esempio il mese corrente).
@@ -300,7 +302,7 @@ Per eseguire i comandi della demo usare il menu dedicato in Google Sheets:
   <img 
     src="docs/guide_images/guida - startup scouting ai.png" 
     alt="Usare comandi menu." 
-    width="600"
+    width="800"
   >
 </p>
 
@@ -309,7 +311,7 @@ Oppure eseguire il codice direttamente dall'editor di Apps Script:
   <img 
     src="docs/guide_images/guida - esegui apps script editor.png" 
     alt="Usare comandi menu." 
-    width="600"
+    width="800"
   >
 </p>
 
@@ -368,7 +370,7 @@ Il flusso high-level:
   2. Usa **Cheerio** ed euristiche (`findStartupListLinks(...)`) per individuare link a:
      - pagine **portfolio**,
      - pagine **startups**,
-     - pagine **alumni/batch**.
+     - pagine **alumni**.
      Si limita a un numero massimo di pagine per acceleratore (es. 3) per rimanere nei limiti di Apps Script.
   3. Per ogni pagina portfolio:
      - scarica l’HTML con `fetchHtml(...)`;
@@ -415,10 +417,10 @@ Il comportamento è il seguente:
      - se il contenuto sembra un dominio parcheggiato, viene saltata.
   3. Costruisce un **contesto testuale compatto** (titolo, meta description, headings, eventuali pagine “about” / “privacy”).
   4. Chiama **Groq LLM API** con un **prompt strutturato** che chiede un output JSON nelle componenti:
+     - `name` (startup),
      - `target` (chi aiuta),
      - `what` (cosa permette di fare),
      - `benefit` (perché è utile),
-     - eventuale `category`.
   5. Converte il JSON in una frase standardizzata del tipo:  
      `Startup X helps Y do W so that Z.`
   6. Prepara un oggetto di aggiornamento con:
@@ -437,7 +439,7 @@ In questo modo l’azione è:
 - **idempotente**: una volta popolata `value_proposition`, la startup non viene più processata;
 - **sicura** rispetto a modifiche manuali: non sovrascrive altri campi.
 
-**Nota**: I prompt verso l’LLM sono progettati con tecniche di prompt engineering (role prompting, few-shot prompting, structured output) per ridurre le allucinazioni e mantenere il formato della frase il più possibile stabile
+> **Nota**: I prompt verso l’LLM sono progettati con tecniche di prompt engineering (role prompting, few-shot prompting, structured output) per ridurre le allucinazioni e mantenere il formato della frase il più possibile stabile
 
 ---
 
@@ -550,7 +552,7 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
 
 - **Limitazioni [LLM e piano free]**  
   - <ins>Limitazioni</ins>: limiti di rate e token del piano gratuito, scelta del modello `llama-3.1-8b-instant` ottimizzata per costo/latency ma potenzialmente meno performante di modelli più grandi.  
-  - <ins>Miglioramenti</ins>: passaggio ad API a pagamento (Groq o altri provider), possibilità di usare modelli più capienti, caching dei risultati per ridurre chiamate ripetute.
+  - <ins>Miglioramenti</ins>: passaggio ad API a pagamento (OpenAI o altri provider), possibilità di usare modelli più capienti, caching dei risultati per ridurre chiamate ripetute.
 
 - **Limitazioni [componenti euristiche]**  
   - <ins>Limitazioni</ins>: uso di regole semplici (filtri su articoli/directory, parked-domain, mapping base di country/focus), con possibile qualità non ottimale dei dati raccolti (startup mancanti, campi vuoti o generici).  
