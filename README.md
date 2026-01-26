@@ -453,21 +453,24 @@ In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore*
 ## 4. Scelte progettuali e trade-off
 
 - **Batch size limitati**
-   - <u>trade-off</u>: meno rischio timeout / rate-limit (free API plan), ma servono più run delle stesse funzioni.
+   - <ins>trade-off</ins>: meno rischio timeout / rate-limit (free API plan), ma servono più run delle stesse funzioni.
 
 - **Health-check HTTP + domini scaduti**
-   - <u>trade-off</u>: si evita di inserire siti "rotti" o con dominio in vendita, ma servono alcune chiamate extra.
+   - <ins>trade-off</ins>: si evita di inserire siti "rotti" o con dominio in vendita, ma servono alcune chiamate extra.
 
 - **Colonne extra opzionali**
-   - <u>trade-off</u>: fogli pronti per estensioni future del prototipo, accettando alcune colonne vuote nella demo.
+   - <ins>trade-off</ins>: fogli pronti per estensioni future del prototipo, accettando alcune colonne vuote nella demo.
 
 - **LLM API per estrazione metadat/contesto**
-   - <u>trade-off</u>: meno costo e meno allucinazioni, ma richiede prompt più strutturati e logica leggermente più complessa.
+   - <ins>trade-off</ins>: meno costo e meno allucinazioni, ma richiede prompt più strutturati e logica leggermente più complessa.
 
 - **Errori non bloccati ma flag nei Logs**
-   - <u>trade-off</u>: il flusso non si ferma, ma la diagnosi richiede ispezione manuale dei logs in "esecuzioni".
+   - <ins>trade-off</ins>: il flusso non si ferma, ma la diagnosi richiede ispezione manuale dei logs in "esecuzioni".
+
+- **Euristiche + LLM invece di scraping avanzato**
+  <ins>trade-off</ins>: codice più compatto e interamente sviluppato in Apps Script, ma con risultati meno robusti rispetto a uno sviluppo custom (es, in node.js + puppeteer).
 
 - **Tracking semplice gestito in Service Properties**
-   - <u>trade-off</u>: tracking semplice e di semplice gestione, ma richiede attenzione se si lavora su copie del foglio e andrebbe esteso per uno scaling reale dell’applicazione.
+   - <ins>trade-off</ins>: tracking semplice e di semplice gestione, ma richiede attenzione se si lavora su copie del foglio e andrebbe esteso per uno scaling reale dell’applicazione.
 ---
 
