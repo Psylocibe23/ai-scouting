@@ -453,16 +453,21 @@ In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore*
 ## 4. Scelte progettuali e trade-off
 
 - **Batch size limitati**
-_trade_-_off_: meno rischio timeout / rate-limit (free API plan), ma servono più run delle stesse funzioni.
+   - <u>trade-off</u>: meno rischio timeout / rate-limit (free API plan), ma servono più run delle stesse funzioni.
 
 - **Health-check HTTP + domini scaduti**
-_trade_-_off_: si evita di inserire siti "rotti" o con dominio scaduto, ma serve qualche chiamata in più.
+   - <u>trade-off</u>: si evita di inserire siti "rotti" o con dominio in vendita, ma servono alcune chiamate extra.
 
 - **Colonne extra opzionali**
-_trade_-_off_: fogli pronti per estensioni future del prototipo, accettando alcune colonne vuote nella demo.
+   - <u>trade-off</u>: fogli pronti per estensioni future del prototipo, accettando alcune colonne vuote nella demo.
 
 - **LLM API per estrazione metadat/contesto**
-_trade_-_off_: meno costo e meno allucinazioni, ma richiede prompt più strutturati e logica più complessa.
+   - <u>trade-off</u>: meno costo e meno allucinazioni, ma richiede prompt più strutturati e logica leggermente più complessa.
 
 - **Errori non bloccati ma flag nei Logs**
-_trade_-_off_:
+   - <u>trade-off</u>: il flusso non si ferma, ma la diagnosi richiede ispezione manuale dei logs in "esecuzioni".
+
+- **Tracking semplice gestito in Service Properties**
+   - <u>trade-off</u>: tracking semplice e di semplice gestione, ma richiede attenzione se si lavora su copie del foglio e andrebbe esteso per uno scaling reale dell’applicazione.
+---
+
