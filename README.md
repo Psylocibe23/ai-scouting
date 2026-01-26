@@ -158,7 +158,7 @@ Le chiavi ottenute possono poi essere incollate nelle Script Properties (`SERPAP
   <img 
     src="docs/guide_images/guida - menu apps script.png" 
     alt="Aprire editor Apps Script" 
-    width="700"
+    width="800"
   >
 </p>
 
@@ -166,7 +166,7 @@ Le chiavi ottenute possono poi essere incollate nelle Script Properties (`SERPAP
   <img 
     src="docs/guide_images/guida - impostazioni progetto.png" 
     alt="Schermata impostazioni progetto Apps Script" 
-    width="700"
+    width="800"
   >
 </p>
 
@@ -473,6 +473,14 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
 
 <details>
 <summary><strong>Guida visiva (con screenshot) </strong></summary>
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - menu apps script.png" 
+    alt="Aprire editor Apps Script" 
+    width="800"
+  >
+</p>
 
 <p align="center">
   <img 
