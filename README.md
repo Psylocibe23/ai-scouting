@@ -78,9 +78,10 @@ Facoltativo (solo se si vogliono usare **API key proprie** invece di quelle già
 1. Aprire il link del foglio:  
    [Foglio Google “AI Scouting – Paprika”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
 2. Se si vuole lavorare su una **copia personale**:
-   - andare su **File → Crea una copia**;
+   - andare su **File &rarr; Crea una copia**;
    - scegliere la cartella del proprio Google Drive;
-   - assegnare un nome a piacere (es. `AI Scouting – Paprika (copia personale)`).
+   - assegnare un nome a piacere (es. `AI Scouting – Paprika (copia personale)`)
+   - **Nota**: se si crea un'altra copia del foglio è necessario impostare le API key (vedere sezione **2.4**).
 3. Nella copia dovrebbero essere presenti almeno due schede:
    - `accelerators`
    - `startups`  
@@ -96,7 +97,7 @@ Tutto il codice vive in un progetto **Apps Script collegato al foglio** (“cont
 
 Per aprirlo:
 
-1. Dalla copia del Google Sheet, andare su **Estensioni → Apps Script**.
+1. Dalla copia del Google Sheet, andare su **Estensioni &rarr; Apps Script**.
 2. Si aprirà una nuova scheda con l’editor di Apps Script, che contiene:
    - i file `.ts` del progetto;
    - le funzioni `runScoutingAccelerators`, `runUpdateStartups`, `runGenerateValueProps`, `runResetSpreadsheet`, ecc.
@@ -128,6 +129,15 @@ Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test inten
 
 1. Nell’editor di Apps Script, cliccare sull’icona **ingranaggio** (in alto a sinistra) oppure andare su  
    **Project Settings / Impostazioni progetto**.
+
+<p align="center">
+  <img 
+    src="docs/guide_images/impostazioni progetto.png" 
+    alt="Schermata impostazioni progetto Apps Script" 
+    width="500"
+  >
+</p>
+
 2. Scorrere fino alla sezione **Script properties / Proprietà script**.
 3. Nella tabella delle proprietà dovrebbero comparire:
 
@@ -146,14 +156,14 @@ Da questo momento tutte le chiamate a SerpAPI e Groq useranno le chiavi personal
 
 #### B. Proprietà da inizializzare quando si crea una copia del foglio
 
-Quando si crea una **copia del Google Sheet** (File → Crea una copia), il progetto Apps Script collegato alla copia potrebbe non avere tutte le Script Properties impostate.
+Quando si crea una **copia del Google Sheet** (File &rarr; Crea una copia), il progetto Apps Script collegato alla copia potrebbe non avere tutte le Script Properties impostate.
 
 Nel progetto Apps Script della copia è opportuno verificare, nella stessa sezione **Script properties**, la presenza delle seguenti chiavi di configurazione:
 
-- `LLM_MODEL` → `llama-3.1-8b-instant`  
-- `LLM_PROVIDER` → `groq`  
-- `SERPAI_USAGE_MONTH` → `2026-01`  
-- `SERPAPI_USAGE_MONTH` → `2026-01`  
+- `LLM_MODEL` &rarr; `llama-3.1-8b-instant`  
+- `LLM_PROVIDER` &rarr; `groq`  
+- `SERPAI_USAGE_MONTH` &rarr; `2026-01`  
+- `SERPAPI_USAGE_MONTH` &rarr; `2026-01`  
 
 I valori `SERPAI_USAGE_MONTH` e `SERPAPI_USAGE_MONTH` rappresentano il mese di utilizzo corrente in formato `YYYY-MM`.  
 Il codice aggiorna e utilizza questi campi per tracciare l’uso mensile delle API; se non sono presenti, è consigliabile inizializzarli con un mese valido (ad esempio il mese corrente).
@@ -169,7 +179,7 @@ Tutte le altre proprietà di tracking (come indici, cursori, contatori) vengono 
 Alla prima esecuzione di una funzione dal menu viene richiesto di autorizzare lo script:
 
 1. Tornare al Google Sheet e ricaricare la pagina: dovrebbe comparire il menu **“Startup Scouting AI”**.
-2. Selezionare, ad esempio, **Startup Scouting AI → Scouting Accelerators**.
+2. Selezionare, ad esempio, **Startup Scouting AI &rarr; Scouting Accelerators**.
 3. Si aprirà una finestra di autorizzazione:
    - scegliere l’account Google con cui eseguire lo script;
    - se compare il messaggio **“Google non ha verificato questa app”**:
