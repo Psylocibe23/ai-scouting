@@ -483,22 +483,22 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
   - <ins>Miglioramenti</ins>: affiancare un backend dedicato (es. Node.js + Puppeteer/Playwright o Python + Requests + BeautifulSoup) esposto via API a Apps Script, mantenendo Google Sheets come interfaccia.
 
 - **Limitazioni [acquisizione dati / scraping]**  
-  - Limitazioni: euristiche generiche per trovare pagine portfolio/startups, HTML spesso poco strutturato, possibili startup mancanti o campi incompleti su siti molto custom o complessi.  
+  - <ins>Limitazioni</ins>: euristiche generiche per trovare pagine portfolio/startups, HTML spesso poco strutturato, possibili startup mancanti o campi incompleti su siti molto custom o complessi.  
   - <ins>Miglioramenti</ins>: scraper dedicati per singoli acceleratori strategici, uso di headless browser per contenuti dinamici, parsing più tipizzato per aumentare recall e qualità dei dati.
 
 - **Limitazioni [LLM e piano free]**  
-  - Limitazioni: limiti di rate e token del piano gratuito, scelta del modello `llama-3.1-8b-instant` ottimizzata per costo/latency ma potenzialmente meno performante di modelli più grandi.  
+  - <ins>Limitazioni</ins>: limiti di rate e token del piano gratuito, scelta del modello `llama-3.1-8b-instant` ottimizzata per costo/latency ma potenzialmente meno performante di modelli più grandi.  
   - <ins>Miglioramenti</ins>: passaggio ad API a pagamento (Groq o altri provider), possibilità di usare modelli più capienti, caching dei risultati per ridurre chiamate ripetute.
 
 - **Limitazioni [componenti euristiche]**  
-  - Limitazioni: alcune decisioni (es. parked-domain heuristic, filtri su articoli/directory, mapping di country/focus) sono rule-based e possono introdurre falsi positivi/negativi o campi mancanti.  
+  - <ins>Limitazioni</ins>: alcune decisioni (es. parked-domain heuristic, filtri su articoli/directory, mapping di country/focus) sono rule-based e possono introdurre falsi positivi/negativi o campi mancanti.  
   - <ins>Miglioramenti</ins>: raffinamento iterativo delle regole a partire dai log, aggiunta di piccoli controlli ML dove ha senso e, su dataset ridotti, validazione manuale della qualità dei dati.
 
 - **Limitazioni [policy / aspetti legali]**  
-  - Limitazioni: la demo è pensata per uso interno e non implementa ancora lettura di `robots.txt` né un controllo sistematico delle condizioni d’uso dei siti.  
+  - <ins>Limitazioni</ins>: la demo è pensata per uso interno e non implementa ancora lettura di `robots.txt` né un controllo sistematico delle condizioni d’uso dei siti.  
   - <ins>Miglioramenti</ins>: introduzione di un layer che legge e rispetta `robots.txt`, limiti sul crawling per sito/domino e revisione legale sulle modalità di raccolta e utilizzo dei dati.
 
 - **Limitazioni [feature di prodotto / business]**  
-  - Limitazioni: il focus è sul popolamento dei fogli e sulle value proposition, senza filtri avanzati (es. per paese/verticale) né moduli di analytics e insight sui dati raccolti.  
+  - <ins>Limitazioni</ins>: il focus è sul popolamento dei fogli e sulle value proposition, senza filtri avanzati (es. per paese/verticale) né moduli di analytics e insight sui dati raccolti.  
   - <ins>Miglioramenti</ins>: aggiunta di parametri di ricerca (es. paese, industry), script di analisi (Python + pandas / scikit-learn) e integrazione con LLM per generare insight di portafoglio (cluster, gap, priorità di contatto).
 
