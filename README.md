@@ -153,8 +153,8 @@ Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test inten
    - `GROQ_API_KEY`
 
 4. Sostituire i valori esistenti con le proprie chiavi:
-   - `SERPAPI_API_KEY` → API key SerpAPI;
-   - `GROQ_API_KEY` → API key Groq.
+   - `SERPAPI_API_KEY` &rarr; API key SerpAPI;
+   - `GROQ_API_KEY` &rarr; API key Groq.
 5. Assicurarsi che i **nomi delle proprietà** siano esattamente questi (maiuscole comprese).
 6. Cliccare su **Save / Salva**.
 
@@ -248,3 +248,202 @@ Dopo questa procedura lo script risulta autorizzato e le esecuzioni successive d
 
 ---
 
+## 3. Architettura ad alto livello e funzioni del menu
+
+L’architettura del prototipo è organizzata intorno a quattro azioni principali, esposte nel menu personalizzato **“Startup Scouting AI”**.  
+Ogni azione richiama una o più funzioni Apps Script, che a loro volta usano:
+
+- **SerpAPI** per la ricerca di acceleratori su Google;
+- **UrlFetchApp** (Apps Script) per recuperare le pagine HTML;
+- **Cheerio** (bundled in `dist/`) per fare parsing HTML lato server;
+- **Groq LLM API** per estrarre informazioni strutturate e generare testo;
+- **PropertiesService** per tracciare stato, cursori, utilizzo e gestione delle chiavi;
+- **Repository** tipizzati (`AcceleratorRepository`, `StartupRepository`) per leggere/scrivere sui fogli.
+
+Di seguito una descrizione high-level di cosa fa ciascun comando.
+
+---
+
+### 3.1 Scouting Accelerators
+
+Comando: **Startup Scouting AI &rarr; Scouting Accelerators**  
+Funzione principale: `runScoutingAccelerators` &rarr; `scoutAcceleratorsSmart(...)`
+
+Questa azione si occupa di **popolare la scheda `accelerators`** con nuovi acceleratori europei.
+
+In sintesi:
+
+- Usa **SerpAPI** per eseguire query come `startup accelerator in europe` e ricevere i risultati in formato JSON.
+- Filtra i risultati:
+  - scarta articoli, directory generiche e domini media;
+  - seleziona solo link che sembrano essere **siti ufficiali di acceleratori**.
+- Per ogni candidato:
+  - usa **UrlFetchApp** per scaricare la pagina HTML;
+  - usa **Cheerio** per estrarre titolo, meta tag e testi di base;
+  - chiama **Groq LLM API** con un prompt pensato per ottenere un JSON con:
+    - `name` (nome ufficiale dell’acceleratore),
+    - `country` e opzionalmente `city`,
+    - `focus` (es. “early-stage tech startups”).
+- Normalizza gli URL (`normalizeUrl(...)`) e usa **`website` come chiave primaria**:
+  - controlla se l’acceleratore esiste già in `accelerators`;
+  - in caso contrario, lo aggiunge tramite `AcceleratorRepository.appendMany(...)`.
+- Usa **PropertiesService** per:
+  - tracciare l’offset di SerpAPI (start index) e non ripetere sempre gli stessi risultati;
+  - monitorare l’uso mensile dell’API (campo `SERPAPI_USAGE_MONTH`).
+
+L’azione termina mostrando un breve riepilogo via `SpreadsheetApp.toast(...)` (nuovi acceleratori trovati, già presenti, provenienza SerpAPI vs lista curata).
+
+---
+
+### 3.2 Update Startups
+
+Comando: **Startup Scouting AI &rarr; Update Startups**  
+Funzione principale: `runUpdateStartups` &rarr; `updateStartupsFromAccelerators(...)`
+
+Questa azione collega gli acceleratori alle startup, riempiendo la scheda **`startups`**.
+
+Il flusso high-level:
+
+- Legge tutti gli acceleratori da `accelerators` tramite `AcceleratorRepository.getAll()`.
+- Usa un **cursore salvato in `ScriptProperties`** (`STARTUP_ACCEL_CURSOR_KEY`) per:
+  - processare solo un piccolo **batch di acceleratori per run** (ad es. 2 per volta);
+  - evitare di ripartire sempre dall’inizio;
+  - rendere la scansione "a scorrimento" (paginata) e robusta ai timeout.
+- Per ogni acceleratore del batch:
+  1. Scarica la homepage (`UrlFetchApp`).
+  2. Usa **Cheerio** ed euristiche (`findStartupListLinks(...)`) per individuare link a:
+     - pagine **portfolio**,
+     - pagine **startups**,
+     - pagine **alumni/batch**.
+     Si limita a un numero massimo di pagine per acceleratore (es. 3) per rimanere nei limiti di Apps Script.
+  3. Per ogni pagina portfolio:
+     - scarica l’HTML con `fetchHtml(...)`;
+     - costruisce un contesto testuale;
+     - invoca **Groq LLM API** tramite `inferStartupsFromPortfolioPage(...)` per ottenere una lista JSON di startup:
+       - `website`, `name`, `country`, eventuale `category` o `last_updated`.
+- Per ogni startup proposta dall’LLM:
+  - normalizza `website` (`normalizeUrl(...)`);
+  - applica una **health check HTTP** con `fetchHtml(...)`:
+    - se il sito restituisce **HTTP ≥ 400**, viene scartato;
+    - se il contenuto sembra una **pagina di dominio parcheggiato** (“This domain is for sale”, “HugeDomains”, ecc.), viene scartato;
+  - verifica duplicati:
+    - controlla in `StartupRepository.getExistingWebsites()` (startup già presenti);
+    - controlla in un `Set` locale di startup già aggiunte in questo run;
+  - se passa tutti i filtri, viene aggiunta nella collezione di nuovi record.
+- Se, per un certo batch, il numero di nuove startup è inferiore a una soglia minima (es. 3), l’algoritmo usa una **lista curata di startup di esempio** (`getCuratedDemoStartups(...)`) per garantire che la demo produca sempre qualche nuovo record, mantenendo comunque il controllo sui dati.
+
+Alla fine:
+
+- tutte le nuove startup vengono inserite in **un’unica scrittura batch** tramite `StartupRepository.appendMany(...)`, che si occupa anche di:
+  - centrare il contenuto delle celle,
+  - adattare la larghezza delle colonne.
+- il cursore sugli acceleratori viene aggiornato in `ScriptProperties`;
+- un riepilogo viene mostrato via toast (acceleratori scansionati, startup scoperte/inserite, eventuali casi senza portfolio).
+
+---
+
+### 3.3 Generate Value Propositions
+
+Comando: **Startup Scouting AI &rarr; Generate Value Propositions**  
+Funzione principale: `runGenerateValueProps` &rarr; `generateMissingValueProps(...)`
+
+Questa azione si concentra sulle startup già presenti nella scheda `startups` e genera, quando mancante, una **value proposition sintetica**.
+
+Il comportamento è il seguente:
+
+- Legge tutte le startup tramite `StartupRepository.getAll()`.
+- Filtra solo quelle con `value_proposition` vuota.
+- Applica un **batch limitato per run** (es. 5 startup alla volta) per evitare timeout di Apps Script.
+- Per ogni startup da processare:
+  1. Normalizza `website` e verifica che sia valido.
+  2. Effettua un **fetch HTML** del sito:
+     - se il sito non è raggiungibile (HTTP ≥ 400), la startup viene saltata;
+     - se il contenuto sembra un dominio parcheggiato, viene saltata.
+  3. Costruisce un **contesto testuale compatto** (titolo, meta description, headings, eventuali pagine “about” / “privacy”).
+  4. Chiama **Groq LLM API** con un **prompt strutturato** che chiede un output JSON nelle componenti:
+     - `target` (chi aiuta),
+     - `what` (cosa permette di fare),
+     - `benefit` (perché è utile),
+     - eventuale `category`.
+  5. Converte il JSON in una frase standardizzata del tipo:  
+     `Startup X helps Y do W so that Z.`
+  6. Prepara un oggetto di aggiornamento con:
+     - `website` (chiave),
+     - `value_proposition` generata,
+     - eventuale `category`,
+     - `last_updated` (timestamp ISO).
+
+- Tutti gli aggiornamenti vengono applicati in **batch** tramite `StartupRepository.updateValuePropsByWebsite(...)`, che:
+  - individua le righe corrette per `website`,
+  - aggiorna solo le colonne `value_proposition`, `category`, `last_updated`,
+  - lascia invariato il resto (nome, country, accelerator, eventuali modifiche manuali).
+
+In questo modo l’azione è:
+
+- **idempotente**: una volta popolata `value_proposition`, la startup non viene più processata;
+- **sicura** rispetto a modifiche manuali: non sovrascrive altri campi.
+
+**Nota**: I prompt verso l’LLM sono progettati con tecniche di prompt engineering (role prompting, few-shot prompting, structured output) per ridurre le allucinazioni e mantenere il formato della frase il più possibile stabile
+
+---
+
+### 3.4 Reset Spreadsheet
+
+Comando: **Startup Scouting AI &rarr; Reset Spreadsheet**  
+Funzione principale: `runResetSpreadsheet` &rarr; `resetTrackingProperties(...)` + `resetSheets(...)`
+
+Questa azione serve a **ripartire da zero** con la demo, senza dover ricreare il file.
+
+In dettaglio:
+
+- `resetTrackingProperties(...)`:
+  - usa **PropertiesService** per eliminare e re-inizializzare le proprietà di tracking usate dal prototipo (ad esempio l’indice di SerpAPI e il cursore sugli acceleratori);
+  - **non tocca** le proprietà di configurazione sensibili:
+    - `SERPAPI_API_KEY`,
+    - `GROQ_API_KEY`,
+    - `LLM_MODEL`,
+    - `LLM_PROVIDER`,
+    - e i campi di usage mensile.
+- `resetSheets(...)`:
+  - individua le schede `accelerators` e `startups`;
+  - cancella tutte le **righe di dati** a partire dalla seconda, preservando:
+    - la riga di intestazione,
+    - la formattazione di base.
+
+Il risultato è uno spreadsheet pronto per una nuova esecuzione end-to-end della pipeline, con:
+
+- configurazione e API key ancora in place;
+- nessun dato residuo in `accelerators` e `startups`;
+- tracking interno riportato allo stato iniziale.
+
+
+I principali parametri di esecuzione sono facilmente modificabili dal codice:
+- nel file `main.ts` si possono cambiare i valori di batch per i comandi di menu (es. numero di acceleratori per run e dimensione dei batch di startup/VP).
+
+--- 
+
+### Nota su gestione errori e tempi di esecuzione
+
+Il codice è organizzato in modo da **gestire gli errori senza interrompere l’intero flusso**.  
+In caso di problemi (sito non raggiungibile, HTTP 4xx/5xx, dominio parcheggiato, errore LLM, ecc.) la singola voce viene **saltata**, viene scritto un messaggio nei log e l’esecuzione prosegue con gli altri elementi.
+
+I log sono visibili dall’editor di Apps Script, nella sezione **Esecuzioni**:
+
+- ogni run mostra lo stato (completata / con errori / interrotta);
+- aprendo il dettaglio di una esecuzione si possono leggere i messaggi generati da `AppLogger` (INFO, WARN, ERROR) e seguire passo per passo ciò che è successo.
+
+Dato che il prototipo combina:
+
+- più layer euristici (ricerca link portfolio, normalizzazione URL, health check, rilevamento domini parcheggiati) e  
+- chiamate a un LLM esterno,
+
+i **tempi di esecuzione possono variare** in base alla complessità delle strutture HTML dei siti web e alla latenza delle API.  
+In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore**: se si desidera capire meglio cosa sta succedendo durante un run, è sufficiente consultare i log nella sezione **Esecuzioni** di Apps Script.
+
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - esecuzioni.png" 
+    alt="Menu esecuzioni per controllo Logs" 
+    width="700"
+  >
+</p>
