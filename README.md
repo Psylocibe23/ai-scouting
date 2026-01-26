@@ -205,7 +205,6 @@ Nel progetto Apps Script della copia è opportuno verificare, nella stessa sezio
 - `LLM_MODEL` &rarr; `llama-3.1-8b-instant`  
 - `LLM_PROVIDER` &rarr; `groq`  
 - `SERPAPI_USAGE_MONTH` &rarr; `2026-01`  
-- `SERPAPI_USAGE_MONTH` &rarr; `2026-01`  
 - `SERPAPI_API_KEY`
 - `GROQ_API_KEY`
 
