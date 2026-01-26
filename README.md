@@ -471,6 +471,9 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
 > I log sono visibili dall’editor di Apps Script, nella sezione **Esecuzioni**: ogni run mostra lo stato (completata / con errori / interrotta) e, aprendo il dettaglio, si possono leggere i messaggi generati da `AppLogger` (INFO, WARN, ERROR).  
 > Poiché il prototipo combina più layer euristici (ricerca link portfolio, normalizzazione URL, health check, rilevamento domini parcheggiati) e chiamate a un LLM esterno, i **tempi di esecuzione possono variare** in base alla complessità dei siti e alla latenza delle API. In ogni caso le funzioni sono pensate per **non bloccarsi su un singolo errore**: per capire cosa sta succedendo durante un run è sufficiente consultare i log in **Esecuzioni**.
 
+<details>
+<summary><strong>Guida visiva (con screenshot) </strong></summary>
+
 <p align="center">
   <img 
     src="docs/guide_images/guida - esecuzioni.png" 
@@ -483,9 +486,11 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
   <img 
     src="docs/guide_images/guida - logs.png" 
     alt="Logs output" 
-    width="600"
+    width="800"
   >
 </p>
+
+</details>
 
 ---
 
