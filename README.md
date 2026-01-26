@@ -137,6 +137,21 @@ Poiché hanno limiti di utilizzo e sono condivise, per test intensivi o per uso 
 
 6. Cliccare su **Save / Salva**.
 
+#### 2.4.3 Proprietà obbligatorie per una nuova copia del foglio
+
+Quando viene creata una **copia del foglio** per testare la demo, le API key potrebbero non essere le uniche proprietà richieste: alcune variabili di configurazione vengono lette da **Script Properties** fin dal primo run.
+
+Nel progetto Apps Script della **copia** è quindi necessario verificare che esistano (ed eventualmente aggiungere) le seguenti proprietà:
+
+- `LLM_MODEL` → `llama-3.1-8b-instant`  
+- `LLM_PROVIDER` → `groq`  
+- `SERPAI_USAGE_MONTH` → `2026-01`  
+- `SERPAPI_USAGE_MONTH` → `2026-01`  
+
+I valori per `*_USAGE_MONTH` vengono aggiornati automaticamente dal codice durante l’esecuzione, ma è consigliabile inizializzarli con un valore valido (es. il mese corrente in formato `YYYY-MM`).  
+
+Le altre proprietà di tracking aggiuntive (contatori, indici, ecc.) vengono create direttamente a runtime dal codice e non richiedono configurazione manuale.
+
 ---
 
 ### 2.5 Prima esecuzione e autorizzazioni
@@ -151,5 +166,7 @@ Alla prima esecuzione di una funzione dal menu viene richiesto di autorizzare lo
      1. cliccare su **“Avanzate”**;
      2. cliccare su **“Vai a ai-scouting-paprika (non sicura)”**.
 4. Nella schermata successiva, scorrere i permessi richiesti e cliccare su **“Consenti”**.
+
+Durante questo passaggio è importante verificare che tra i permessi concessi allo script ci sia anche la voce che consente di **visualizzare e modificare i fogli di calcolo Google** associati all’account (ad esempio “Visualizzare e gestire i tuoi fogli di calcolo Google”). Senza questo permesso lo script non può leggere/scrivere nelle schede `accelerators` e `startups`.
 
 Dopo questa procedura lo script risulta autorizzato e le esecuzioni successive dei comandi dal menu non richiederanno ulteriori conferme (a meno di modifiche significative al progetto o revoca dei permessi).
