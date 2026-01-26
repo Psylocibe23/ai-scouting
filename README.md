@@ -145,6 +145,8 @@ Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test inten
   >
 </p>
 
+> **Nota importante**: il nome delle proprietà deve coincidere **esattamente** con quello indicato in questo README (maiuscole comprese), ad esempio `SERPAPI_API_KEY`, `GROQ_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `SERPAPI_USAGE_MONTH`. Se il nome è diverso (es. `SERPAI_USAGE_MONTH`), la proprietà non viene letta dal codice.
+
 Le chiavi ottenute possono poi essere incollate nelle Script Properties (`SERPAPI_API_KEY` e `GROQ_API_KEY`).
 
 #### B. Sostituire le API key con chiavi proprie
@@ -281,6 +283,17 @@ Ogni azione richiama una o più funzioni Apps Script, che a loro volta usano:
 - **Groq LLM API** per estrarre informazioni strutturate e generare testo;
 - **PropertiesService** per tracciare stato, cursori, utilizzo e gestione delle chiavi;
 - **Repository** tipizzati (`AcceleratorRepository`, `StartupRepository`) per leggere/scrivere sui fogli.
+
+
+Per eseguire i comandi della demo usare il menu dedicato in Google Sheets:
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - startup scouting ai.png" 
+    alt="Usare comandi menu." 
+    width="400"
+  >
+</p>
+
 
 Di seguito una descrizione high-level di cosa fa ciascun comando.
 
@@ -442,25 +455,12 @@ Il risultato è uno spreadsheet pronto per una nuova esecuzione end-to-end della
 I principali parametri di esecuzione sono facilmente modificabili dal codice:
 - nel file `main.ts` si possono cambiare i valori di batch per i comandi di menu (es. numero di acceleratori per run e dimensione dei batch di startup/VP).
 
---- 
+---
 
-> ### Nota su gestione errori e tempi di esecuzione
-
-> Il codice è organizzato in modo da **gestire gli errori senza interrompere l’intero flusso**.  
-> In caso di problemi (sito non raggiungibile, HTTP 4xx/5xx, dominio parcheggiato, errore LLM, ecc.) la singola voce viene **saltata**, viene scritto un messaggio nei log e l’esecuzione prosegue con gli altri elementi.
-
-> I log sono visibili dall’editor di Apps Script, nella sezione **Esecuzioni**:
-
-> - ogni run mostra lo stato (completata / con errori / interrotta);
-> - aprendo il dettaglio di una esecuzione si possono leggere i messaggi generati da `AppLogger` (INFO, WARN, ERROR) e seguire passo per passo ciò che è successo.
-
-> Dato che il prototipo combina:
-
-> - più layer euristici (ricerca link portfolio, normalizzazione URL, health check, rilevamento domini parcheggiati) e  
-> - chiamate a un LLM esterno,
-
-> i **tempi di esecuzione possono variare** in base alla complessità delle strutture HTML dei siti web e alla latenza delle API.  
-> In ogni caso, le funzioni sono pensate per **non bloccarsi su un singolo errore**: se si desidera capire meglio cosa sta succedendo durante un run, è sufficiente consultare i log nella sezione **Esecuzioni** di Apps Script.
+> **Nota su gestione errori e tempi di esecuzione**  
+> Il codice è organizzato per **gestire gli errori senza interrompere l’intero flusso**. In caso di problemi (sito non raggiungibile, HTTP 4xx/5xx, dominio parcheggiato, errore LLM, ecc.) la singola voce viene **saltata**, viene scritto un messaggio nei log e l’esecuzione prosegue con gli altri elementi.  
+> I log sono visibili dall’editor di Apps Script, nella sezione **Esecuzioni**: ogni run mostra lo stato (completata / con errori / interrotta) e, aprendo il dettaglio, si possono leggere i messaggi generati da `AppLogger` (INFO, WARN, ERROR).  
+> Poiché il prototipo combina più layer euristici (ricerca link portfolio, normalizzazione URL, health check, rilevamento domini parcheggiati) e chiamate a un LLM esterno, i **tempi di esecuzione possono variare** in base alla complessità dei siti e alla latenza delle API. In ogni caso le funzioni sono pensate per **non bloccarsi su un singolo errore**: per capire cosa sta succedendo durante un run è sufficiente consultare i log in **Esecuzioni**.
 
 <p align="center">
   <img 
@@ -470,7 +470,16 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
   >
 </p>
 
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - logs.png" 
+    alt="Logs output" 
+    width="400"
+  >
+</p>
+
 ---
+
 
 ## 4. Scelte progettuali e trade-off
 
