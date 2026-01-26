@@ -491,8 +491,9 @@ I principali parametri di esecuzione sono facilmente modificabili dal codice:
   - <ins>Miglioramenti</ins>: passaggio ad API a pagamento (Groq o altri provider), possibilità di usare modelli più capienti, caching dei risultati per ridurre chiamate ripetute.
 
 - **Limitazioni [componenti euristiche]**  
-  - <ins>Limitazioni</ins>: alcune decisioni (es. parked-domain heuristic, filtri su articoli/directory, mapping di country/focus) sono rule-based e possono introdurre falsi positivi/negativi o campi mancanti.  
-  - <ins>Miglioramenti</ins>: raffinamento iterativo delle regole a partire dai log, aggiunta di piccoli controlli ML dove ha senso e, su dataset ridotti, validazione manuale della qualità dei dati.
+  - <ins>Limitazioni</ins>: uso di regole semplici (filtri su articoli/directory, parked-domain, mapping base di country/focus), con possibile qualità non ottimale dei dati raccolti (startup mancanti, campi vuoti o generici).  
+  - <ins>Miglioramenti</ins>: introdurre tecniche di web scraping più avanzate per ridurre il peso delle euristiche e, su dataset ridotti o critici, prevedere una verifica manuale della coerenza e qualità dei dati.
+
 
 - **Limitazioni [policy / aspetti legali]**  
   - <ins>Limitazioni</ins>: la demo è pensata per uso interno e non implementa ancora lettura di `robots.txt` né un controllo sistematico delle condizioni d’uso dei siti.  
