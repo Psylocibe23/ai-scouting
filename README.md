@@ -290,7 +290,16 @@ Per eseguire i comandi della demo usare il menu dedicato in Google Sheets:
   <img 
     src="docs/guide_images/guida - startup scouting ai.png" 
     alt="Usare comandi menu." 
-    width="400"
+    width="600"
+  >
+</p>
+
+Oppure eseguire il codice direttamente dall'editor di Apps Script:
+<p align="center">
+  <img 
+    src="docs/guide_images/guida - esegui apps script editor.png" 
+    alt="Usare comandi menu." 
+    width="600"
   >
 </p>
 
