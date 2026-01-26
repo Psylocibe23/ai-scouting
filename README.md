@@ -139,7 +139,7 @@ Poiché le chiavi demo hanno limiti di utilizzo e sono condivise, per test inten
 
 <p align="center">
   <img 
-    src="docs/guide_images/guida - groq api.pngg" 
+    src="docs/guide_images/guida - groq api.png" 
     alt="Creazione Groq API key" 
     width="700"
   >
