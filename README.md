@@ -2,12 +2,17 @@
     <strong>Italiano</strong> | <a href="README.en.md">English</a>
 </p>
 
-# AI Startup Scouting - Demo per Paprika
+#  AI Startup Scouting – Google Sheets + Apps Script
 
-Questa repository contiene il codice **Apps Script** e la struttura di **Google Sheets** utilizzati per il caso studio **“AI Scouting (Google Sheets + Apps Script)”** richiesto da Paprika.
+Questa repository contiene il codice Apps Script e la struttura di Google Sheets
+per un prototipo di **AI-powered startup scouting**.
+
+Il progetto automatizza la scoperta di acceleratori e startup in Europa e genera
+una **value proposition sintetica** per ciascuna startup.
+
 
 **Link al Google Sheet della demo**  
-👉 [Foglio Google “AI Scouting - Paprika”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
+👉 [Foglio Google “AI Scouting”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
 
 ---
 
@@ -72,7 +77,7 @@ Per usare la demo servono:
 
 - un **Google Account** (per accedere a Google Sheets e Apps Script);
 - l’accesso al foglio:  
-  [Foglio Google “AI Scouting – Paprika”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing).
+  [Foglio Google “AI Scouting”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing).
 
 Facoltativo (solo se si vogliono usare **API key proprie** invece di quelle già presenti nel progetto):
 
@@ -88,11 +93,11 @@ Facoltativo (solo se si vogliono usare **API key proprie** invece di quelle già
 ### 2.2 Ottenere il proprio Google Sheet
 
 1. Aprire il link del foglio:  
-   [Foglio Google “AI Scouting – Paprika”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
+   [Foglio Google “AI Scouting”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
 2. Se si vuole lavorare su una **copia personale**:
    - andare su **File &rarr; Crea una copia**;
    - scegliere la cartella del proprio Google Drive;
-   - assegnare un nome a piacere (es. `AI Scouting – Paprika (copia personale)`)
+   - assegnare un nome a piacere (es. `AI Scouting (copia personale)`)
    - **Nota**: se si crea un'altra copia del foglio è necessario impostare le API key (vedere sezione **[2.4](#24-configurare-o-sostituire-le-api-key-in-script-properties)**).
 3. Nella copia dovrebbero essere presenti almeno due schede:
    - `accelerators`
@@ -227,7 +232,7 @@ Alla prima esecuzione di una funzione dal menu viene richiesto di autorizzare lo
    - scegliere l’account Google con cui eseguire lo script;
    - se compare il messaggio **“Google non ha verificato questa app”**:
      1. cliccare su **“Avanzate”**;
-     2. cliccare su **“Vai a ai-scouting-paprika (non sicura)”**.
+     2. cliccare su **“Vai a ai-scouting (non sicura)”**.
 4. Nella schermata successiva, scorrere i permessi richiesti e cliccare su **“Consenti”**.
 
 Durante questo passaggio è importante verificare che tra i permessi concessi allo script ci sia anche la voce che consente di **visualizzare e modificare i fogli di calcolo Google** associati all’account (ad esempio “Visualizzare e gestire i tuoi fogli di calcolo Google”). Senza questo permesso lo script non può leggere/scrivere nelle schede `accelerators` e `startups`.
@@ -265,8 +270,8 @@ Dopo questa procedura lo script risulta autorizzato e le esecuzioni successive d
 
 <p align="center">
   <img 
-    src="docs/guide_images/guida - apri ai-scouting-paprika.png" 
-    alt="Autorizzazione prima esecuzione - apri ai-scouting-paprika" 
+    src="docs/guide_images/guida - apri ai-scouting.png" 
+    alt="Autorizzazione prima esecuzione" 
     width="700"
   >
 </p>

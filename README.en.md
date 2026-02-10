@@ -2,12 +2,16 @@
     <a href="README.md">Italiano</a> | <strong>English</strong>
 </p>
 
-# AI Startup Scouting – Demo for Paprika
+#  AI Startup Scouting – Google Sheets + Apps Script
 
-This repository contains the **Apps Script** code and **Google Sheets** structure used for the case study **“AI Scouting (Google Sheets + Apps Script)”** requested by Paprika.
+This repository contains the Apps Script code and the Google Sheets structure
+for an **AI-powered startup scouting** prototype.
+
+The project automates the discovery of accelerators and startups in Europe and generates
+a **concise value proposition** for each startup.
 
 **Link to the demo Google Sheet**  
-👉 [Google Sheet “AI Scouting – Paprika”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
+👉 [Google Sheet “AI Scouting”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
 
 ---
 
@@ -72,7 +76,7 @@ To use the demo you need:
 
 - a **Google Account** (to access Google Sheets and Apps Script);
 - access to the sheet:  
-  [Google Sheet “AI Scouting – Paprika”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing).
+  [Google Sheet “AI Scouting”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing).
 
 Optional (only if you want to use **your own API keys** instead of the keys already present in the project):
 
@@ -88,11 +92,11 @@ Optional (only if you want to use **your own API keys** instead of the keys alre
 ### 2.2 Getting your own Google Sheet
 
 1. Open the sheet link:  
-   [Google Sheet “AI Scouting – Paprika”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
+   [Google Sheet “AI Scouting”](https://docs.google.com/spreadsheets/d/1k2gIxV_vYbieDqE6UBpY1tElrLzizRgwpyGtXXm07Ck/edit?usp=sharing)
 2. If you want to work on a **personal copy**:
    - go to **File &rarr; Make a copy**;
    - choose a folder in your Google Drive;
-   - give it a name (e.g. `AI Scouting – Paprika (personal copy)`);
+   - give it a name (e.g. `AI Scouting (personal copy)`);
    - **Note**: if you create another copy of the sheet you must configure API keys (see section **[2.4](#24-configure-or-replace-api-keys-in-script-properties)**).
 3. In the copy, you should see at least two sheets:
    - `accelerators`
@@ -227,7 +231,7 @@ On the first run of any menu function, the script will ask for authorization:
    - choose the Google account to run the script with;
    - if you see the message **“Google hasn’t verified this app”**:
      1. click **“Advanced”**;
-     2. click **“Go to ai-scouting-paprika (unsafe)”**.
+     2. click **“Go to ai-scouting (unsafe)”**.
 4. In the next screen, review the requested permissions and click **“Allow”**.
 
 During this step it is important to check that one of the permissions granted to the script allows it to **view and edit Google Sheets** associated with your account (for example “View and manage your spreadsheets in Google Drive”). Without this permission the script will not be able to read/write the `accelerators` and `startups` sheets.
@@ -265,8 +269,8 @@ After this procedure the script is authorized and subsequent runs of menu comman
 
 <p align="center">
   <img 
-    src="docs/guide_images/guida - apri ai-scouting-paprika.png" 
-    alt="Authorization – go to ai-scouting-paprika" 
+    src="docs/guide_images/guida - apri ai-scouting.png" 
+    alt="Authorization – go to ai-scouting" 
     width="700"
   >
 </p>
